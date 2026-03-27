@@ -1,2 +1,9 @@
 Computing perplexity for input.txt...
 Tokenizing text...
+Found x tokens
+Processing x tokens in y window(s).
+Window 1/4: nll = 
+Window 2/4: nll = 
+Window 3/4: nll = 
+Window 4/4: nll = 
+Perplexity: x
