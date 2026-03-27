@@ -5,6 +5,12 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 def main():
     args = parseArguments()
+    f_in = open(args.input_file)
+    f_out = open(args.out_file, 'w')
+    f_out.write("Computing perplexity for " + str(f_in) + "...")
+    f_out.write("Tokenizing text...")
+    f_in.close()
+    f_out.close()
     model = createModel()
        
 def createModel():
