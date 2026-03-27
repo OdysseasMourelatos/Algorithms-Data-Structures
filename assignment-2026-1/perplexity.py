@@ -1,4 +1,5 @@
 import argparse
+import math
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
@@ -14,6 +15,9 @@ def createModel():
     )
     model.eval()
     
+    #Testing
+    print(math.log(10))
+
 def parseArguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file", help = "name of input file")
