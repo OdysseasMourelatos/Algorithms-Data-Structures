@@ -4,8 +4,8 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 def main():
-    parseArguments()
-    createModel()
+    args = parseArguments()
+    model = createModel()
        
 def createModel():
     model_name = "facebook/opt-125m"
@@ -14,9 +14,7 @@ def createModel():
         model_name, tie_word_embeddings=False
     )
     model.eval()
-    
-    #Testing
-    print(math.log(10))
+    return model
 
 def parseArguments():
     parser = argparse.ArgumentParser()
@@ -26,7 +24,7 @@ def parseArguments():
     parser.add_argument("--n-ctx", default = 2048, help = "the size of the window")
     parser.add_argument("--begin-context-tokens", default = 512, help = "the number of tokens that will be used as context window")
     parser.add_argument
-    args = parser.parse_args()
+    return parser.parse_args()
     
 if __name__ == "__main__":
     main()
