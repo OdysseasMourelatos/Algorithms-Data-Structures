@@ -8,12 +8,10 @@ def main():
     model, tokenizer = createModel()
     f_in = open(args.input_file)
     text = f_in.read()
-    
-    tokens = tokenizer(text).input_ids
-    print(len(tokens))
+    tokens = find_tokens(tokenizer, text)
     
     
-    write_file(args.out_file, f_in.name)
+    write_file(args.out_file, f_in.name, tokens)
     
     f_in.close()
     
@@ -37,12 +35,16 @@ def createModel():
     model.eval()
     return model, tokenizer
 
-def write_file(out_file, input_file_name):
+def find_tokens(tokenizer, text):
+    tokens = tokenizer(text).input_ids
+    return tokens
+
+def write_file(out_file, input_file_name, tokens):
     f_out = open(out_file, 'w')
     f_out.write("Computing perplexity for " + str(input_file_name) + "...")
     f_out.write("\nTokenizing text...")
-    f_out.write("\nFound " + 'x' + " tokens") # will soon be a function call
-    f_out.write("\nProcessing " + 'x' + " tokens in " + 'y' " window(s).") # will also use function 
+    f_out.write("\nFound " + str(len(tokens)) + " tokens") 
+    f_out.write("\nProcessing " + str(len(tokens)) + " tokens in " + 'y' " window(s).") # will also use function 
     for i in range(4): # 4 is temporary - just for testing purposes
         f_out.write("\nWindow " + str(i+1) + "/4: nll = " ) 
     f_out.write("\nPerplexity: " + 'x') # function call
