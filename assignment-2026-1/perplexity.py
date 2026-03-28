@@ -40,7 +40,7 @@ def find_tokens(tokenizer, text):
     return tokens
 
 def find_windows(tokens_length, stride, nctx):
-    windows = 0
+    windows = 1
     size = nctx
     while size < tokens_length:
         windows += 1
@@ -53,8 +53,8 @@ def write_file(out_file, input_file_name, tokens, windows):
     f_out.write("\nTokenizing text...")
     f_out.write("\nFound " + str(len(tokens)) + " tokens") 
     f_out.write("\nProcessing " + str(len(tokens)) + " tokens in " + str(windows) + " window(s).") # will also use function 
-    for i in range(4): # 4 is temporary - just for testing purposes
-        f_out.write("\nWindow " + str(i+1) + "/4: nll = " ) 
+    for i in range(windows):
+        f_out.write("\nWindow " + str(i+1) + "/" + str(i+1) + ": nll = " ) 
     f_out.write("\nPerplexity: " + 'x') # function call
     f_out.close()
     
