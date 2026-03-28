@@ -8,6 +8,7 @@ def main():
     model, tokenizer = createModel()
     f_in = open(args.input_file)
     text = f_in.read()
+    
     tokens = find_tokens(tokenizer, text)
     windows = find_windows(len(tokens), args.stride, args.n_ctx)
     
@@ -15,7 +16,7 @@ def main():
     
     f_in.close()
     
-    
+
 def parseArguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file", help = "name of input file")
@@ -54,7 +55,7 @@ def write_file(out_file, input_file_name, tokens, windows):
     f_out.write("\nFound " + str(len(tokens)) + " tokens") 
     f_out.write("\nProcessing " + str(len(tokens)) + " tokens in " + str(windows) + " window(s).") # will also use function 
     for i in range(windows):
-        f_out.write("\nWindow " + str(i+1) + "/" + str(i+1) + ": nll = " ) 
+        f_out.write("\nWindow " + str(i+1) + "/" + str(windows) + ": nll = " ) 
     f_out.write("\nPerplexity: " + 'x') # function call
     f_out.close()
     
