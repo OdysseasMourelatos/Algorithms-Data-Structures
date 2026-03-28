@@ -5,8 +5,13 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 def main():
     args = parseArguments()
-    model = createModel()
+    model, tokenizer = createModel()
     f_in = open(args.input_file)
+    text = f_in.read()
+    
+    tokens = tokenizer(text).input_ids
+    print(len(tokens))
+    
     
     write_file(args.out_file, f_in.name)
     
@@ -18,8 +23,8 @@ def parseArguments():
     parser.add_argument("input_file", help = "name of input file")
     parser.add_argument("out_file", help = "name of output file")
     parser.add_argument("--stride", default = 512, help = "the stride")
-    parser.add_argument("--n-ctx", default = 2048, help = "the size of the window")
-    parser.add_argument("--begin-context-tokens", default = 512, help = "the number of tokens that will be used as context window")
+    parser.add_argument("--n-ctx", default = 2048, help = "the size of the context window")
+    parser.add_argument("--begin-context-tokens", default = 512, help = "the number of tokens that will be used as initial context")
     parser.add_argument
     return parser.parse_args()
 
@@ -30,7 +35,7 @@ def createModel():
         model_name, tie_word_embeddings=False
     )
     model.eval()
-    return model
+    return model, tokenizer
 
 def write_file(out_file, input_file_name):
     f_out = open(out_file, 'w')
