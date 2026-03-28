@@ -1,7 +1,7 @@
-Computing perplexity for ai_as_normal_technology_start.txt...
+Computing perplexity for nonsensical.txt...
 Tokenizing text...
-Found 3475 tokens
-Processing 3475 tokens in y window(s).
+Found 2837 tokens
+Processing 2837 tokens in 2 window(s).
 Window 1/4: nll = 
 Window 2/4: nll = 
 Window 3/4: nll = 

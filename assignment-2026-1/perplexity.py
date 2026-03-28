@@ -9,9 +9,9 @@ def main():
     f_in = open(args.input_file)
     text = f_in.read()
     tokens = find_tokens(tokenizer, text)
+    windows = find_windows(len(tokens), args.stride, args.n_ctx)
     
-    
-    write_file(args.out_file, f_in.name, tokens)
+    write_file(args.out_file, f_in.name, tokens, windows)
     
     f_in.close()
     
@@ -21,7 +21,7 @@ def parseArguments():
     parser.add_argument("input_file", help = "name of input file")
     parser.add_argument("out_file", help = "name of output file")
     parser.add_argument("--stride", default = 512, help = "the stride")
-    parser.add_argument("--n-ctx", default = 2048, help = "the size of the context window")
+    parser.add_argument("--n_ctx", default = 2048, help = "the size of the context window")
     parser.add_argument("--begin-context-tokens", default = 512, help = "the number of tokens that will be used as initial context")
     parser.add_argument
     return parser.parse_args()
@@ -39,12 +39,20 @@ def find_tokens(tokenizer, text):
     tokens = tokenizer(text).input_ids
     return tokens
 
-def write_file(out_file, input_file_name, tokens):
+def find_windows(tokens_length, stride, nctx):
+    windows = 0
+    size = nctx
+    while size < tokens_length:
+        windows += 1
+        size += stride
+    return windows
+
+def write_file(out_file, input_file_name, tokens, windows):
     f_out = open(out_file, 'w')
     f_out.write("Computing perplexity for " + str(input_file_name) + "...")
     f_out.write("\nTokenizing text...")
     f_out.write("\nFound " + str(len(tokens)) + " tokens") 
-    f_out.write("\nProcessing " + str(len(tokens)) + " tokens in " + 'y' " window(s).") # will also use function 
+    f_out.write("\nProcessing " + str(len(tokens)) + " tokens in " + str(windows) + " window(s).") # will also use function 
     for i in range(4): # 4 is temporary - just for testing purposes
         f_out.write("\nWindow " + str(i+1) + "/4: nll = " ) 
     f_out.write("\nPerplexity: " + 'x') # function call
