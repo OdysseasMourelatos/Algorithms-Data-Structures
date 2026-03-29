@@ -41,13 +41,20 @@ def find_tokens(tokenizer, text):
 
 def find_windows(tokens, stride, nctx):
     num_windows = 1
-    windows = []
     size = nctx
     while size < len(tokens):
         num_windows += 1
         size += stride
     return num_windows
 
+def get_window_tokens(begin_index, window_size, tokens):
+    i = begin_index
+    window = []
+    while i < window_size:
+        window.append(tokens[i])
+        i += 1
+    return window
+    
 def write_file(out_file, input_file_name, tokens, windows):
     f_out = open(out_file, 'w')
     f_out.write("Computing perplexity for " + str(input_file_name) + "...")
