@@ -42,9 +42,14 @@ def find_tokens(tokenizer, text):
 def find_windows(tokens, stride, nctx):
     num_windows = 1
     size = nctx
+    window = []
+    window.append(get_window_tokens(0, nctx, tokens))
     while size < len(tokens):
         num_windows += 1
         size += stride
+        window.append(get_window_tokens(stride*num_windows, nctx, tokens))
+    print(window)
+    print(len(window))
     return num_windows
 
 def get_window_tokens(begin_index, window_size, tokens):
