@@ -60,6 +60,12 @@ def get_window_tokens(begin_index, last_index, tokens):
         else:
             break
     return window
+
+def get_logits(window):
+    window_tensor = torch.tensor([window])
+    with torch.no_grad():
+        logits = model(window_tensor).logits
+    return logits
     
 def write_file(out_file, input_file_name, tokens, windows):
     f_out = open(out_file, 'w')
