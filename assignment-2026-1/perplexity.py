@@ -11,10 +11,7 @@ def main():
     tokens = find_tokens(tokenizer, text)
     windows = find_windows(tokens, args.stride, args.n_ctx)
     
-    print(tokens)
-    print() 
-    
-    write_file(args.out_file, f_in.name, tokens, windows)
+    write_file(args.out_file, f_in.name, tokens, len(windows))
     
     f_in.close()
     
@@ -50,16 +47,8 @@ def find_windows(tokens, stride, nctx):
     while size < len(tokens):
         num_windows += 1
         size += stride
-        windows.append(get_window_tokens(stride*num_windows, nctx + stride*num_windows, tokens))
-        
-    for window in windows:
-        print(window)
-        print()
-    print(len(windows))
-    
-    print(tokens[2047])
-    print(tokens[2048])
-    return num_windows
+        windows.append(get_window_tokens(stride*(num_windows-1), nctx + stride*(num_windows-1), tokens))
+    return windows
 
 def get_window_tokens(begin_index, last_index, tokens):
     i = begin_index
@@ -70,7 +59,6 @@ def get_window_tokens(begin_index, last_index, tokens):
             i += 1
         else:
             break
-    print(len(window))
     return window
     
 def write_file(out_file, input_file_name, tokens, windows):
@@ -81,7 +69,7 @@ def write_file(out_file, input_file_name, tokens, windows):
     f_out.write("\nProcessing " + str(len(tokens)) + " tokens in " + str(windows) + " window(s).")
     for i in range(windows):
         f_out.write("\nWindow " + str(i+1) + "/" + str(windows) + ": nll = " ) 
-    f_out.write("\nPerplexity: " + 'x') # function call
+    f_out.write("\nPerplexity: " + 'x') 
     f_out.close()
     
 if __name__ == "__main__":
