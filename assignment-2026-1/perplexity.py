@@ -11,6 +11,9 @@ def main():
     tokens = find_tokens(tokenizer, text)
     windows = find_windows(tokens, args.stride, args.n_ctx)
     
+    print(tokens)
+    print() 
+    
     write_file(args.out_file, f_in.name, tokens, windows)
     
     f_in.close()
@@ -42,22 +45,32 @@ def find_tokens(tokenizer, text):
 def find_windows(tokens, stride, nctx):
     num_windows = 1
     size = nctx
-    window = []
-    window.append(get_window_tokens(0, nctx, tokens))
+    windows = []
+    windows.append(get_window_tokens(0, nctx, tokens))
     while size < len(tokens):
         num_windows += 1
         size += stride
-        window.append(get_window_tokens(stride*num_windows, nctx, tokens))
-    print(window)
-    print(len(window))
+        windows.append(get_window_tokens(stride*num_windows, nctx + stride*num_windows, tokens))
+        
+    for window in windows:
+        print(window)
+        print()
+    print(len(windows))
+    
+    print(tokens[2047])
+    print(tokens[2048])
     return num_windows
 
-def get_window_tokens(begin_index, window_size, tokens):
+def get_window_tokens(begin_index, last_index, tokens):
     i = begin_index
     window = []
-    while i < window_size:
-        window.append(tokens[i])
-        i += 1
+    while i < last_index:
+        if (i < len(tokens)):
+            window.append(tokens[i])
+            i += 1
+        else:
+            break
+    print(len(window))
     return window
     
 def write_file(out_file, input_file_name, tokens, windows):
