@@ -11,6 +11,10 @@ def main():
     tokens = find_tokens(tokenizer, text)
     windows = find_windows(tokens, args.stride, args.n_ctx)
     
+    logits = []
+    for window in windows:
+        logits.append(get_logits(model, window))
+    
     write_file(args.out_file, f_in.name, tokens, len(windows))
     
     f_in.close()
@@ -61,7 +65,7 @@ def get_window_tokens(begin_index, last_index, tokens):
             break
     return window
 
-def get_logits(window):
+def get_logits(model, window):
     window_tensor = torch.tensor([window])
     with torch.no_grad():
         logits = model(window_tensor).logits
