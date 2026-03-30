@@ -81,12 +81,13 @@ def find_logits_for_evaluation(logits, tokens_length, windows_length, stride, n_
                 logits_for_evaluation.append(j)
         else:
             for j in range(n_ctx + stride*(i-1), n_ctx + stride*i):
-                if j < tokens_length:
+                if j < tokens_length - 1:
                     logits_for_evaluation.append(j)
                 else:
                     break
         i+=1
-        
+    print(tokens_length)
+    print(len(logits_for_evaluation))
     print(logits_for_evaluation)
     return logits_for_evaluation
 
