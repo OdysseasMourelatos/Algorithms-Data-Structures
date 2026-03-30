@@ -4,8 +4,8 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 def main():
-    args = parseArguments()
-    model, tokenizer = createModel()
+    args = parse_arguments()
+    model, tokenizer = create_model()
     f_in = open(args.input_file)
     text = f_in.read()
     tokens = find_tokens(tokenizer, text)
@@ -15,12 +15,13 @@ def main():
     for window in windows:
         logits.append(get_logits(model, window))
     
+    logits_for_evaluation = find_logits_for_evaluation(logits, args.stride, args.n_ctx, args.begin_context_tokens)   
     write_file(args.out_file, f_in.name, tokens, len(windows))
     
     f_in.close()
     
 
-def parseArguments():
+def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file", help = "name of input file")
     parser.add_argument("out_file", help = "name of output file")
@@ -30,7 +31,7 @@ def parseArguments():
     parser.add_argument
     return parser.parse_args()
 
-def createModel():
+def create_model():
     model_name = "facebook/opt-125m"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(
@@ -70,6 +71,9 @@ def get_logits(model, window):
     with torch.no_grad():
         logits = model(window_tensor).logits
     return logits
+
+def find_logits_for_evaluation(logits, stride, n_ctx, begin_context_tokens):
+    print()
     
 def write_file(out_file, input_file_name, tokens, windows):
     f_out = open(out_file, 'w')
