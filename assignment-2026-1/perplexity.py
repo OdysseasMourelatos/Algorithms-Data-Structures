@@ -14,7 +14,12 @@ def main():
     logits = []
     for window in windows:
         logits.append(get_logits(model, window))
-    
+        
+    print(logits)
+    print(logits[0][0][0][0])
+    print(logits[1][0][1][1])
+    print(logits[2][0][2][1])
+
     logits_for_evaluation = find_logits_for_evaluation(logits, len(tokens), len(windows), args.stride, args.n_ctx, args.begin_context_tokens)   
     write_file(args.out_file, f_in.name, tokens, len(windows))
     
@@ -86,9 +91,6 @@ def find_logits_for_evaluation(logits, tokens_length, windows_length, stride, n_
                 else:
                     break
         i+=1
-    print(tokens_length)
-    print(len(logits_for_evaluation))
-    print(logits_for_evaluation)
     return logits_for_evaluation
 
     
