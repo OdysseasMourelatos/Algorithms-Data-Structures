@@ -15,7 +15,7 @@ def main():
     for window in windows:
         logits.append(get_logits(model, window))
     
-    logits_for_evaluation = find_logits_for_evaluation(logits, len(windows), args.stride, args.n_ctx, args.begin_context_tokens)   
+    logits_for_evaluation = find_logits_for_evaluation(logits, len(tokens), len(windows), args.stride, args.n_ctx, args.begin_context_tokens)   
     write_file(args.out_file, f_in.name, tokens, len(windows))
     
     f_in.close()
@@ -72,7 +72,7 @@ def get_logits(model, window):
         logits = model(window_tensor).logits
     return logits
 
-def find_logits_for_evaluation(logits, windows_length, stride, n_ctx, begin_context_tokens):
+def find_logits_for_evaluation(logits, tokens_length, windows_length, stride, n_ctx, begin_context_tokens):
     logits_for_evaluation = []
     i = 0
     while i < windows_length:
@@ -81,7 +81,10 @@ def find_logits_for_evaluation(logits, windows_length, stride, n_ctx, begin_cont
                 logits_for_evaluation.append(j)
         else:
             for j in range(n_ctx + stride*(i-1) - 1, n_ctx + stride*i):
-                logits_for_evaluation.append(j)
+                if j < tokens_length:
+                    logits_for_evaluation.append(j)
+                else:
+                    break
         i+=1
         
     print(logits_for_evaluation)
