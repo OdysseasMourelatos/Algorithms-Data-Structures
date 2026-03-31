@@ -4,28 +4,48 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 def main():
+    #Parsing the arguments
     args = parse_arguments()
+    
+    #Creating the model & getting the BOS token
     model, tokenizer = create_model()
     bos_token = tokenizer.bos_token_id
+    
+    #Reading the file
     f_in = open(args.input_file)
     text = f_in.read()
+    
+    #Getting ALL the tokens
     tokens = find_tokens(tokenizer, text)
+    
+    #Getting the tokens of EACH window
     windows = find_windows(tokens, args.stride, args.n_ctx)
     
+    #Initialization
     j = 0
     sums=[]
     total_length = 0
-    
+   
+    #Outer loop - for every window
     for window in windows:
+        #Gives us the logits of each window
         logits = get_logits(model, window)
+        
+        #Finding the indexes of the window which we'll use to evaluate our model & the total length
         indexes_for_evaluation = find_logits_indexes_for_evaluation(len(tokens), j, args.stride, args.n_ctx, args.begin_context_tokens)
         total_length += len(indexes_for_evaluation)
+    
         sum = 0
+        
+        #Inner loop - for every index inside the window that we'll use for evaluation
         for i in indexes_for_evaluation:
+            #Gives us the probabilities of EACH word in the dictionary of the model, using the function softmax
             log_probs = softmax(logits, i - args.stride*j)
+            #Finding ONLY the token that we care about, all the other words are not needed anymore
             token = tokens[i+1]
             token_log_prob = log_probs[token] 
             sum += round(token_log_prob, 4)
+
         print(-sum)
         sums.append(-sum)
         j += 1
@@ -40,7 +60,7 @@ def main():
     
     f_in.close()
     
-
+#Parsing the arguments as described 
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file", help = "name of input file")
@@ -51,6 +71,7 @@ def parse_arguments():
     parser.add_argument
     return parser.parse_args()
 
+#Creating the model using the code given to us by our professor
 def create_model():
     model_name = "facebook/opt-125m"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -60,21 +81,27 @@ def create_model():
     model.eval()
     return model, tokenizer
 
+#Transforming the words given in text into tokens
 def find_tokens(tokenizer, text):
     tokens = tokenizer(text).input_ids
     return tokens
 
+#Allows us to get the tokens of each window
 def find_windows(tokens, stride, nctx):
+    #For the first window
     num_windows = 1
     size = nctx
     windows = []
     windows.append(get_window_tokens(0, nctx, tokens))
+    
+    #For every other window until we reach the end, increasing by stride each time 
     while size < len(tokens):
         num_windows += 1
         size += stride
         windows.append(get_window_tokens(stride*(num_windows-1), nctx + stride*(num_windows-1), tokens))
     return windows
 
+#Sends back the tokens of 1 window per time
 def get_window_tokens(begin_index, last_index, tokens):
     i = begin_index
     window = []
@@ -86,17 +113,21 @@ def get_window_tokens(begin_index, last_index, tokens):
             break
     return window
 
+#Gives us the logits of a certain row, using the code our professor gave us
 def get_logits(model, window):
     window_tensor = torch.tensor([window])
     with torch.no_grad():
         logits = model(window_tensor).logits
     return logits
 
+#Finds ONLY the indexes of the logits that we'll use to evaluate the model
 def find_logits_indexes_for_evaluation(tokens_length, window_num, stride, n_ctx, begin_context_tokens):
     indexes_for_evaluation = []
+    #For the first window - special treatment
     if window_num == 0:
         for j in range(begin_context_tokens -1, n_ctx):
             indexes_for_evaluation.append(j)
+    #For every other window we increase by stride
     else:
         for j in range(n_ctx + stride*(window_num-1), n_ctx + stride*window_num):
             if j < tokens_length - 1:
@@ -104,7 +135,8 @@ def find_logits_indexes_for_evaluation(tokens_length, window_num, stride, n_ctx,
             else:
                 break
     return indexes_for_evaluation
-       
+
+#Softmax function using the code our professor gave us - converts logits into probabilities
 def softmax(logits, i):
     row = logits[0,i].tolist()
     max_val = max(row)
@@ -113,6 +145,7 @@ def softmax(logits, i):
     log_probs = [x- log_sum_exp for x in shifted]
     return log_probs
 
+#Final output to the user as a file
 def write_file(out_file, input_file_name, tokens, windows):
     f_out = open(out_file, 'w')
     f_out.write("Computing perplexity for " + str(input_file_name) + "...")
