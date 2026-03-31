@@ -11,15 +11,20 @@ def main():
     tokens = find_tokens(tokenizer, text)
     windows = find_windows(tokens, args.stride, args.n_ctx)
     
-    i = 0
+    j = 0
     for window in windows:
         logits = get_logits(model, window)
-        indexes_for_evaluation = find_logits_indexes_for_evaluation(len(tokens), i, args.stride, args.n_ctx, args.begin_context_tokens)
-        i += 1
-        for i in indexes_for_evaluation:
-            log_probs = softmax(logits, i)
-            token = tokens[i+1]
-            token_log_prob = log_probs[token] 
+        indexes_for_evaluation = find_logits_indexes_for_evaluation(len(tokens), j, args.stride, args.n_ctx, args.begin_context_tokens)
+        j += 1
+        sum = 0
+        print(len(logits[0]))
+        #for i in indexes_for_evaluation:
+            #log_probs = softmax(logits, i)
+            #token = tokens[i+1]
+            #token_log_prob = log_probs[token] 
+            #sum += token_log_prob
+        #nll = - (sum / len(indexes_for_evaluation))
+        #print(nll)
     
     write_file(args.out_file, f_in.name, tokens, len(windows))
     
