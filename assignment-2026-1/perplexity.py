@@ -11,12 +11,10 @@ def main():
     tokens = find_tokens(tokenizer, text)
     windows = find_windows(tokens, args.stride, args.n_ctx)
     
-    logits = []
     for window in windows:
-        logits.append(get_logits(model, window))
-        
-    row = logits[0][0][0].tolist()
-    print(row)
+        logits = get_logits(model, window)
+        softmax(logits, 0)
+
     indexes_for_evaluation = find_logits_indexes_for_evaluation(logits, len(tokens), len(windows), args.stride, args.n_ctx, args.begin_context_tokens)
     
     write_file(args.out_file, f_in.name, tokens, len(windows))
@@ -90,14 +88,14 @@ def find_logits_indexes_for_evaluation(logits, tokens_length, windows_length, st
                     break
         i+=1
     return indexes_for_evaluation
-
-def softmax(logits, window, i):
-    row = logits[window, 0, i].tolist()
+       
+def softmax(logits, i):
+    row = logits[0,i].tolist()
     max_val = max(row)
     shifted = [x- max_val for x in row]
     log_sum_exp = math.log(sum(math.exp(x) for x in shifted))
     log_probs = [x- log_sum_exp for x in shifted]
-    print(log_probs)
+    return log_probs
 
 def write_file(out_file, input_file_name, tokens, windows):
     f_out = open(out_file, 'w')
