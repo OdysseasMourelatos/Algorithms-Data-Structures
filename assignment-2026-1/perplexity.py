@@ -16,9 +16,8 @@ def main():
         logits = get_logits(model, window)
         indexes_for_evaluation = find_logits_indexes_for_evaluation(len(tokens), i, args.stride, args.n_ctx, args.begin_context_tokens)
         i += 1
-        print(indexes_for_evaluation)
-        print()
-        softmax(logits, 0)
+        for i in indexes_for_evaluation:
+            log_probs = softmax(logits, i)
     
     write_file(args.out_file, f_in.name, tokens, len(windows))
     
