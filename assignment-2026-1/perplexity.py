@@ -6,6 +6,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 def main():
     args = parse_arguments()
     model, tokenizer = create_model()
+    bos_token = tokenizer.bos_token_id
     f_in = open(args.input_file)
     text = f_in.read()
     tokens = find_tokens(tokenizer, text)
@@ -14,6 +15,7 @@ def main():
     j = 0
     sums=[]
     total_length = 0
+    
     for window in windows:
         logits = get_logits(model, window)
         indexes_for_evaluation = find_logits_indexes_for_evaluation(len(tokens), j, args.stride, args.n_ctx, args.begin_context_tokens)
