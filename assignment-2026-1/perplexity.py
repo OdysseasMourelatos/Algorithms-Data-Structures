@@ -18,6 +18,8 @@ def main():
         i += 1
         for i in indexes_for_evaluation:
             log_probs = softmax(logits, i)
+            token = tokens[i+1]
+            token_log_prob = log_probs[token] 
     
     write_file(args.out_file, f_in.name, tokens, len(windows))
     
