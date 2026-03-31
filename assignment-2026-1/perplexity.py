@@ -11,11 +11,14 @@ def main():
     tokens = find_tokens(tokenizer, text)
     windows = find_windows(tokens, args.stride, args.n_ctx)
     
+    i = 0
     for window in windows:
         logits = get_logits(model, window)
+        indexes_for_evaluation = find_logits_indexes_for_evaluation(len(tokens), i, args.stride, args.n_ctx, args.begin_context_tokens)
+        i += 1
+        print(indexes_for_evaluation)
+        print()
         softmax(logits, 0)
-
-    indexes_for_evaluation = find_logits_indexes_for_evaluation(logits, len(tokens), len(windows), args.stride, args.n_ctx, args.begin_context_tokens)
     
     write_file(args.out_file, f_in.name, tokens, len(windows))
     
@@ -73,20 +76,17 @@ def get_logits(model, window):
         logits = model(window_tensor).logits
     return logits
 
-def find_logits_indexes_for_evaluation(logits, tokens_length, windows_length, stride, n_ctx, begin_context_tokens):
+def find_logits_indexes_for_evaluation(tokens_length, window_num, stride, n_ctx, begin_context_tokens):
     indexes_for_evaluation = []
-    i = 0
-    while i < windows_length:
-        if i == 0:
-            for j in range(begin_context_tokens - 1, n_ctx):
+    if window_num == 0:
+        for j in range(begin_context_tokens - 1, n_ctx):
+            indexes_for_evaluation.append(j)
+    else:
+        for j in range(n_ctx + stride*(window_num-1), n_ctx + stride*window_num):
+            if j < tokens_length - 1:
                 indexes_for_evaluation.append(j)
-        else:
-            for j in range(n_ctx + stride*(i-1), n_ctx + stride*i):
-                if j < tokens_length - 1:
-                    indexes_for_evaluation.append(j)
-                else:
-                    break
-        i+=1
+            else:
+                break
     return indexes_for_evaluation
        
 def softmax(logits, i):
