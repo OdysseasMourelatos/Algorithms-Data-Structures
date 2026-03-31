@@ -15,12 +15,10 @@ def main():
     for window in windows:
         logits.append(get_logits(model, window))
         
-    print(logits)
-    print(logits[0][0][0][0])
-    print(logits[1][0][1][1])
-    print(logits[2][0][2][1])
-
-    logits_for_evaluation = find_logits_for_evaluation(logits, len(tokens), len(windows), args.stride, args.n_ctx, args.begin_context_tokens)   
+    row = logits[0][0][0].tolist()
+    print(row)
+    indexes_for_evaluation = find_logits_indexes_for_evaluation(logits, len(tokens), len(windows), args.stride, args.n_ctx, args.begin_context_tokens)
+    
     write_file(args.out_file, f_in.name, tokens, len(windows))
     
     f_in.close()
@@ -77,23 +75,30 @@ def get_logits(model, window):
         logits = model(window_tensor).logits
     return logits
 
-def find_logits_for_evaluation(logits, tokens_length, windows_length, stride, n_ctx, begin_context_tokens):
-    logits_for_evaluation = []
+def find_logits_indexes_for_evaluation(logits, tokens_length, windows_length, stride, n_ctx, begin_context_tokens):
+    indexes_for_evaluation = []
     i = 0
     while i < windows_length:
         if i == 0:
             for j in range(begin_context_tokens - 1, n_ctx):
-                logits_for_evaluation.append(j)
+                indexes_for_evaluation.append(j)
         else:
             for j in range(n_ctx + stride*(i-1), n_ctx + stride*i):
                 if j < tokens_length - 1:
-                    logits_for_evaluation.append(j)
+                    indexes_for_evaluation.append(j)
                 else:
                     break
         i+=1
-    return logits_for_evaluation
+    return indexes_for_evaluation
 
-    
+def softmax(logits, window, i):
+    row = logits[window, 0, i].tolist()
+    max_val = max(row)
+    shifted = [x- max_val for x in row]
+    log_sum_exp = math.log(sum(math.exp(x) for x in shifted))
+    log_probs = [x- log_sum_exp for x in shifted]
+    print(log_probs)
+
 def write_file(out_file, input_file_name, tokens, windows):
     f_out = open(out_file, 'w')
     f_out.write("Computing perplexity for " + str(input_file_name) + "...")
