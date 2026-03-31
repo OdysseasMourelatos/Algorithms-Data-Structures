@@ -12,20 +12,27 @@ def main():
     windows = find_windows(tokens, args.stride, args.n_ctx)
     
     j = 0
+    sums=[]
+    total_length = 0
     for window in windows:
         logits = get_logits(model, window)
         indexes_for_evaluation = find_logits_indexes_for_evaluation(len(tokens), j, args.stride, args.n_ctx, args.begin_context_tokens)
+        total_length += len(indexes_for_evaluation)
         sum = 0
         for i in indexes_for_evaluation:
             log_probs = softmax(logits, i - args.stride*j)
             token = tokens[i+1]
             token_log_prob = log_probs[token] 
-            sum += token_log_prob
-        print(- (sum))
-        nll = - (sum / len(indexes_for_evaluation))
-        print(nll)
-        print(math.exp(nll))
+            sum += round(token_log_prob, 4)
+        print(-sum)
+        sums.append(-sum)
         j += 1
+
+    total_sum = 0
+    for sum in sums:
+        total_sum+=sum
+    nll = total_sum / total_length
+    print(math.exp(nll))
     
     write_file(args.out_file, f_in.name, tokens, len(windows))
     
@@ -86,7 +93,7 @@ def get_logits(model, window):
 def find_logits_indexes_for_evaluation(tokens_length, window_num, stride, n_ctx, begin_context_tokens):
     indexes_for_evaluation = []
     if window_num == 0:
-        for j in range(begin_context_tokens - 1, n_ctx):
+        for j in range(begin_context_tokens -1, n_ctx):
             indexes_for_evaluation.append(j)
     else:
         for j in range(n_ctx + stride*(window_num-1), n_ctx + stride*window_num):
