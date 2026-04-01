@@ -31,18 +31,18 @@ def main():
         #Gives us the logits of each window
         logits = get_logits(model, window)
         
-        #Finding the indexes of the window which we'll use to evaluate our model & the total length
-        indexes_for_evaluation = find_logits_indexes_for_evaluation(len(tokens), j, args.stride, args.n_ctx, args.begin_context_tokens)
+        #Finding the indexes of the window which we'll use to evaluate our model
+        indexes_for_evaluation = find_window_indexes_for_evaluation(len(window), j, args.stride, args.n_ctx, args.begin_context_tokens)
         total_length += len(indexes_for_evaluation)
-    
+        print(len(indexes_for_evaluation))
         sum = 0
         
         #Inner loop - for every index inside the window that we'll use for evaluation
         for i in indexes_for_evaluation:
             #Gives us the probabilities of EACH word in the dictionary of the model, using the function softmax
-            log_probs = softmax(logits, i - args.stride*j)
+            log_probs = softmax(logits, i-1)
             #Finding ONLY the token that we care about, all the other words are not needed anymore
-            token = tokens[i+1]
+            token = window[i]
             token_log_prob = log_probs[token] 
             sum += token_log_prob
 
@@ -116,8 +116,6 @@ def get_window_tokens(begin_index, last_index, tokens, BOS):
             i += 1
         else:
             break
-    print(window)
-    print(len(window))
     return window
 
 #Gives us the logits of a certain row, using the code our professor gave us
@@ -127,17 +125,17 @@ def get_logits(model, window):
         logits = model(window_tensor).logits
     return logits
 
-#Finds ONLY the indexes of the logits that we'll use to evaluate the model
-def find_logits_indexes_for_evaluation(tokens_length, window_num, stride, n_ctx, begin_context_tokens):
+#Finds ONLY the indexes of each window that we'll use to evaluate the model
+def find_window_indexes_for_evaluation(window_length, window_num, stride, n_ctx, begin_context_tokens):
     indexes_for_evaluation = []
     #For the first window - special treatment
     if window_num == 0:
-        for j in range(begin_context_tokens - 1, n_ctx - 1):
+        for j in range(begin_context_tokens, n_ctx):
             indexes_for_evaluation.append(j)
     #For every other window we increase by stride
     else:
-        for j in range(n_ctx + stride*(window_num-1), n_ctx + stride*window_num):
-            if j < tokens_length - 1:
+        for j in range(n_ctx - stride, n_ctx):
+            if j < window_length - 1:
                 indexes_for_evaluation.append(j)
             else:
                 break
