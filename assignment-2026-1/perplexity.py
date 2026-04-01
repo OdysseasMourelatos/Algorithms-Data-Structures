@@ -6,6 +6,9 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 def main():
     #Parsing the arguments
     args = parse_arguments()
+    n_ctx = int(args.n_ctx)
+    stride = int(args.stride)
+    begin_context_tokens = int(args.begin_context_tokens)
     
     #Creating the model & getting the BOS token
     model, tokenizer = create_model()
@@ -19,7 +22,7 @@ def main():
     tokens = find_tokens(tokenizer, text)
     
     #Getting the tokens of EACH window
-    windows = find_windows(tokens, args.stride, args.n_ctx, bos_token)
+    windows = find_windows(tokens, stride, n_ctx, bos_token)
     
     #Initialization
     j = 0
@@ -32,7 +35,7 @@ def main():
         logits = get_logits(model, window)
         
         #Finding the indexes of the window which we'll use to evaluate our model
-        indexes_for_evaluation = find_window_indexes_for_evaluation(len(window), j, args.stride, args.n_ctx, args.begin_context_tokens)
+        indexes_for_evaluation = find_window_indexes_for_evaluation(len(window), j, stride, n_ctx, begin_context_tokens)
         total_length += len(indexes_for_evaluation)
         sum = 0
         
@@ -48,7 +51,7 @@ def main():
         j += 1
 
     #Final Calculations
-    total_sum = 0
+    total_sum = 0.0
     for sum in sums:
         total_sum+=sum
     nll = total_sum / total_length
@@ -64,8 +67,8 @@ def parse_arguments():
     parser.add_argument("input_file", help = "name of input file")
     parser.add_argument("out_file", help = "name of output file")
     parser.add_argument("--stride", default = 512, help = "the stride")
-    parser.add_argument("--n_ctx", default = 2048, help = "the size of the context window")
-    parser.add_argument("--begin_context_tokens", default = 512, help = "the number of tokens that will be used as initial context")
+    parser.add_argument("--n-ctx", default = 2048, help = "the size of the context window")
+    parser.add_argument("--begin-context-tokens", default = 512, help = "the number of tokens that will be used as initial context")
     parser.add_argument
     return parser.parse_args()
 
@@ -164,8 +167,8 @@ def write_file(out_file, input_file_name, tokens, windows, sums, perplexity):
     f_out.write("\nFound " + str(len(tokens)) + " tokens") 
     f_out.write("\nProcessing " + str(len(tokens)) + " tokens in " + str(windows) + " window(s).")
     for i in range(windows):
-        f_out.write("\nWindow " + str(i+1) + "/" + str(windows) + ": nll = " + str(round(sums[i],4)) ) 
-    f_out.write("\nPerplexity: " + str(round(perplexity,2))) 
+        f_out.write("\nWindow " + str(i+1) + "/" + str(windows) + ": nll = " + f"{sums[i]:.4f}") 
+    f_out.write("\nPerplexity: " + f"{perplexity:.2f}") 
     f_out.close()
     
 if __name__ == "__main__":
