@@ -167,7 +167,7 @@ def write_file(out_file, input_file_name, tokens, windows, sums, perplexity):
     f_out.write("\nFound " + str(len(tokens)) + " tokens") 
     f_out.write("\nProcessing " + str(len(tokens)) + " tokens in " + str(windows) + " window(s).")
     for i in range(windows):
-        f_out.write("\nWindow " + str(i+1) + "/" + str(windows) + ": nll = " + f"{sums[i]:.4f}") 
+        f_out.write("\nWindow " + str(i+1) + "/" + str(windows) + ": nll=" + f"{sums[i]:.4f}") 
     f_out.write("\nPerplexity: " + f"{perplexity:.2f}") 
     f_out.close()
     
