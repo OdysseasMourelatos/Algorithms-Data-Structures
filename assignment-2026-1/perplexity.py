@@ -19,7 +19,7 @@ def main():
     tokens = find_tokens(tokenizer, text)
     
     #Getting the tokens of EACH window
-    windows = find_windows(tokens, args.stride, args.n_ctx)
+    windows = find_windows(tokens, args.stride, args.n_ctx, bos_token)
     
     #Initialization
     j = 0
@@ -44,9 +44,9 @@ def main():
             #Finding ONLY the token that we care about, all the other words are not needed anymore
             token = tokens[i+1]
             token_log_prob = log_probs[token] 
-            sum += round(token_log_prob, 4)
+            sum += token_log_prob
 
-        print(-sum)
+        print(round(-sum, 4))
         sums.append(-sum)
         j += 1
 
@@ -54,7 +54,7 @@ def main():
     for sum in sums:
         total_sum+=sum
     nll = total_sum / total_length
-    print(math.exp(nll))
+    print(round(math.exp(nll),2))
     
     write_file(args.out_file, f_in.name, tokens, len(windows))
     
@@ -87,30 +87,37 @@ def find_tokens(tokenizer, text):
     return tokens
 
 #Allows us to get the tokens of each window
-def find_windows(tokens, stride, nctx):
+def find_windows(tokens, stride, nctx, BOS):
     #For the first window
     num_windows = 1
     size = nctx
     windows = []
-    windows.append(get_window_tokens(0, nctx, tokens))
+    windows.append(get_window_tokens(0, nctx, tokens, BOS))
     
     #For every other window until we reach the end, increasing by stride each time 
     while size < len(tokens):
         num_windows += 1
         size += stride
-        windows.append(get_window_tokens(stride*(num_windows-1), nctx + stride*(num_windows-1), tokens))
+        begin_index = stride*(num_windows-1)
+        last_index = nctx + stride*(num_windows-1) - 1
+        windows.append(get_window_tokens(begin_index, last_index, tokens, BOS))
     return windows
 
 #Sends back the tokens of 1 window per time
-def get_window_tokens(begin_index, last_index, tokens):
+def get_window_tokens(begin_index, last_index, tokens, BOS):
     i = begin_index
     window = []
+    #If it's not the first window
+    if begin_index!=0:
+        window.append(BOS)
     while i < last_index:
         if (i < len(tokens)):
             window.append(tokens[i])
             i += 1
         else:
             break
+    print(window)
+    print(len(window))
     return window
 
 #Gives us the logits of a certain row, using the code our professor gave us
@@ -125,7 +132,7 @@ def find_logits_indexes_for_evaluation(tokens_length, window_num, stride, n_ctx,
     indexes_for_evaluation = []
     #For the first window - special treatment
     if window_num == 0:
-        for j in range(begin_context_tokens -1, n_ctx):
+        for j in range(begin_context_tokens - 1, n_ctx - 1):
             indexes_for_evaluation.append(j)
     #For every other window we increase by stride
     else:
