@@ -34,15 +34,14 @@ def main():
         #Finding the indexes of the window which we'll use to evaluate our model
         indexes_for_evaluation = find_window_indexes_for_evaluation(len(window), j, args.stride, args.n_ctx, args.begin_context_tokens)
         total_length += len(indexes_for_evaluation)
-        print(len(indexes_for_evaluation))
         sum = 0
         
         #Inner loop - for every index inside the window that we'll use for evaluation
         for i in indexes_for_evaluation:
             #Gives us the probabilities of EACH word in the dictionary of the model, using the function softmax
-            log_probs = softmax(logits, i-1)
+            log_probs = softmax(logits, i)
             #Finding ONLY the token that we care about, all the other words are not needed anymore
-            token = window[i]
+            token = window[i+1]
             token_log_prob = log_probs[token] 
             sum += token_log_prob
 
@@ -99,7 +98,7 @@ def find_windows(tokens, stride, nctx, BOS):
         num_windows += 1
         size += stride
         begin_index = stride*(num_windows-1)
-        last_index = nctx + stride*(num_windows-1) - 1
+        last_index = nctx + stride*(num_windows-1)
         windows.append(get_window_tokens(begin_index, last_index, tokens, BOS))
     return windows
 
@@ -110,6 +109,7 @@ def get_window_tokens(begin_index, last_index, tokens, BOS):
     #If it's not the first window
     if begin_index!=0:
         window.append(BOS)
+        i+=1
     while i < last_index:
         if (i < len(tokens)):
             window.append(tokens[i])
@@ -131,12 +131,12 @@ def find_window_indexes_for_evaluation(window_length, window_num, stride, n_ctx,
     #For the first window - special treatment
     if window_num == 0:
         for j in range(begin_context_tokens, n_ctx):
-            indexes_for_evaluation.append(j)
+            indexes_for_evaluation.append(j - 1)
     #For every other window we increase by stride
     else:
         for j in range(n_ctx - stride, n_ctx):
-            if j < window_length - 1:
-                indexes_for_evaluation.append(j)
+            if j < window_length:
+                indexes_for_evaluation.append(j - 1)
             else:
                 break
     return indexes_for_evaluation
