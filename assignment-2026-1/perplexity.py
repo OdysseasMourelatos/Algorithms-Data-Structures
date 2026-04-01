@@ -44,18 +44,17 @@ def main():
             token = window[i+1]
             token_log_prob = log_probs[token] 
             sum += token_log_prob
-
-        print(round(-sum, 4))
         sums.append(-sum)
         j += 1
 
+    #Final Calculations
     total_sum = 0
     for sum in sums:
         total_sum+=sum
     nll = total_sum / total_length
-    print(round(math.exp(nll),2))
-    
-    write_file(args.out_file, f_in.name, tokens, len(windows))
+
+    #Output as a file
+    write_file(args.out_file, f_in.name, tokens, len(windows), sums, math.exp(nll))
     
     f_in.close()
     
@@ -106,10 +105,15 @@ def find_windows(tokens, stride, nctx, BOS):
 def get_window_tokens(begin_index, last_index, tokens, BOS):
     i = begin_index
     window = []
+    
     #If it's not the first window
     if begin_index!=0:
+        #Add the BOS
         window.append(BOS)
+        #Skip first index to make way for the BOS
         i+=1
+        
+    #Add the elements to the window
     while i < last_index:
         if (i < len(tokens)):
             window.append(tokens[i])
@@ -128,10 +132,12 @@ def get_logits(model, window):
 #Finds ONLY the indexes of each window that we'll use to evaluate the model
 def find_window_indexes_for_evaluation(window_length, window_num, stride, n_ctx, begin_context_tokens):
     indexes_for_evaluation = []
+    
     #For the first window - special treatment
     if window_num == 0:
         for j in range(begin_context_tokens, n_ctx):
             indexes_for_evaluation.append(j - 1)
+            
     #For every other window we increase by stride
     else:
         for j in range(n_ctx - stride, n_ctx):
@@ -151,15 +157,15 @@ def softmax(logits, i):
     return log_probs
 
 #Final output to the user as a file
-def write_file(out_file, input_file_name, tokens, windows):
+def write_file(out_file, input_file_name, tokens, windows, sums, perplexity):
     f_out = open(out_file, 'w')
     f_out.write("Computing perplexity for " + str(input_file_name) + "...")
     f_out.write("\nTokenizing text...")
     f_out.write("\nFound " + str(len(tokens)) + " tokens") 
     f_out.write("\nProcessing " + str(len(tokens)) + " tokens in " + str(windows) + " window(s).")
     for i in range(windows):
-        f_out.write("\nWindow " + str(i+1) + "/" + str(windows) + ": nll = " ) 
-    f_out.write("\nPerplexity: " + 'x') 
+        f_out.write("\nWindow " + str(i+1) + "/" + str(windows) + ": nll = " + str(round(sums[i],4)) ) 
+    f_out.write("\nPerplexity: " + str(round(perplexity,2))) 
     f_out.close()
     
 if __name__ == "__main__":

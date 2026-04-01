@@ -1,9 +1,9 @@
-Computing perplexity for the_adolescence_of_technology_start.txt...
+Computing perplexity for ai_as_normal_technology_start.txt...
 Tokenizing text...
-Found 3552 tokens
-Processing 3552 tokens in 4 window(s).
-Window 1/4: nll = 
-Window 2/4: nll = 
-Window 3/4: nll = 
-Window 4/4: nll = 
-Perplexity: x
+Found 3475 tokens
+Processing 3475 tokens in 4 window(s).
+Window 1/4: nll = 4595.0921
+Window 2/4: nll = 1618.5748
+Window 3/4: nll = 1386.8407
+Window 4/4: nll = 1154.1965
+Perplexity: 19.2
