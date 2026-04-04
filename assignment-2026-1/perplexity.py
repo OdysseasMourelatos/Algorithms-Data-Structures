@@ -51,13 +51,10 @@ def main():
         j += 1
 
     #Final Calculations
-    total_sum = 0.0
-    for sum in sums:
-        total_sum+=sum
-    nll = total_sum / total_length
-
+    perplexity = get_perplexity(sums, total_length)
+    
     #Output as a file
-    write_file(args.out_file, f_in.name, tokens, len(windows), sums, math.exp(nll))
+    write_file(args.out_file, f_in.name, tokens, len(windows), sums, perplexity)
     
     f_in.close()
     
@@ -159,6 +156,15 @@ def softmax(logits, i):
     log_probs = [x- log_sum_exp for x in shifted]
     return log_probs
 
+#Final Calculation of Perplexity
+def get_perplexity(sums, length):
+    total_sum = 0.0
+    for sum in sums:
+        total_sum+=sum
+    nll = total_sum / length
+    perplexity = math.exp(nll)
+    return perplexity
+    
 #Final output to the user as a file
 def write_file(out_file, input_file_name, tokens, windows, sums, perplexity):
     f_out = open(out_file, 'w')
