@@ -17,6 +17,7 @@ def main():
     #Reading the file
     f_in = open(args.input_file)
     text = f_in.read()
+    f_in.close()
     
     #Getting ALL the tokens
     tokens = find_tokens(tokenizer, text)
@@ -25,7 +26,7 @@ def main():
     windows = find_windows(tokens, stride, n_ctx, bos_token)
     
     #Initialization
-    j = 0
+    window_num = 0
     sums=[]
     total_length = 0
    
@@ -35,7 +36,7 @@ def main():
         logits = get_logits(model, window)
         
         #Finding the indexes of the window which we'll use to evaluate our model
-        indexes_for_evaluation = find_window_indexes_for_evaluation(len(window), j, stride, n_ctx, begin_context_tokens)
+        indexes_for_evaluation = find_window_indexes_for_evaluation(len(window), window_num, stride, n_ctx, begin_context_tokens)
         total_length += len(indexes_for_evaluation)
         sum = 0
         
@@ -48,15 +49,13 @@ def main():
             token_log_prob = log_probs[token] 
             sum += token_log_prob
         sums.append(-sum)
-        j += 1
+        window_num += 1
 
     #Final Calculations
     perplexity = get_perplexity(sums, total_length)
     
     #Output as a file
     write_file(args.out_file, f_in.name, tokens, len(windows), sums, perplexity)
-    
-    f_in.close()
     
 #Parsing the arguments as described 
 def parse_arguments():
