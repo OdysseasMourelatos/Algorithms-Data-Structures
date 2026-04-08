@@ -136,7 +136,6 @@ def find_window_indexes_for_evaluation(window_length, window_num, stride, n_ctx,
     if window_num == 0:
         for j in range(begin_context_tokens, n_ctx):
             indexes_for_evaluation.append(j - 1)
-            
     #For every other window we increase by stride
     else:
         for j in range(n_ctx - stride, n_ctx):
@@ -169,7 +168,7 @@ def write_file(out_file, input_file_name, tokens, windows, sums, perplexity):
     f_out = open(out_file, 'w')
     f_out.write("Computing perplexity for " + str(input_file_name) + "...")
     f_out.write("\nTokenizing text...")
-    f_out.write("\nFound " + str(len(tokens)) + " tokens") 
+    f_out.write("\nFound " + str(len(tokens)) + " tokens.") 
     f_out.write("\nProcessing " + str(len(tokens)) + " tokens in " + str(windows) + " window(s).")
     for i in range(windows):
         f_out.write("\nWindow " + str(i+1) + "/" + str(windows) + ": nll=" + f"{sums[i]:.4f}") 
