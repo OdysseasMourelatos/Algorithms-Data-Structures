@@ -10,27 +10,9 @@ def main():
         filename = sys.argv[2]
     num_nodes, num_links, connections, begin_a, begin_b = get_txt_data(filename)
     
-    g = {}
+    g = get_graph(connections)
     
-    for connenction in connections:
-        node_a = connenction[0]
-        node_b = connenction[1]
-        value_a = g.get(node_a)
-        value_b = g.get(node_b)
-        
-        if  value_a is None:
-            g.update({node_a: [node_b]})
-        else:
-            value_a.append(node_b)
-            g.update({node_a: value_a})
-            
-        if value_b is None:
-            g.update({node_b: [node_a]})
-        else:
-            value_b.append(node_a)
-            g.update({node_b: value_b})
-        print(g)
-        
+    print(g)
     
 def get_txt_data(filename):
     f = open(filename)
@@ -50,6 +32,28 @@ def get_txt_data(filename):
     begin_b = int(contents[i+1][2])   
     
     return num_nodes, num_links, connections, begin_a, begin_b
+
+def get_graph(connections):
+    g = {}
+    
+    for connenction in connections:
+        node_a = connenction[0]
+        node_b = connenction[1]
+        value_a = g.get(node_a)
+        value_b = g.get(node_b)
+        
+        if  value_a is None:
+            g.update({node_a: [node_b]})
+        else:
+            value_a.append(node_b)
+            g.update({node_a: value_a})
+            
+        if value_b is None:
+            g.update({node_b: [node_a]})
+        else:
+            value_b.append(node_a)
+            g.update({node_b: value_b})
+    return g
 
 if __name__ == "__main__":
     main()
