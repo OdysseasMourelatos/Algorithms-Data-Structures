@@ -12,6 +12,9 @@ def main():
     
     g = get_graph(connections)
     
+    visited_a = breadth_first_search(g, begin_a)
+    visited_b = breadth_first_search(g, begin_b)
+    
     print(g)
     
 def get_txt_data(filename):
@@ -54,6 +57,28 @@ def get_graph(connections):
             value_b.append(node_a)
             g.update({node_b: value_b})
     return g
+
+def breadth_first_search(g, node):
+    de = deque([])
+    visited = []
+    inqueue = []
+    for i in range(len(g)):
+        visited.append(False)
+        inqueue.append(False)
+    de.append(node)
+    inqueue[node]=True
+    while not len(de) == 0:
+        c = de.popleft()
+        inqueue[c]=False
+        visited[c]=True
+        for u in AdjacencyList(g,c):
+            if not visited[u] and not inqueue[u]:
+                de.append(u)
+                inqueue[u] = True
+    return visited
+
+def AdjacencyList(g,c):
+    return g.get(c)
 
 if __name__ == "__main__":
     main()
