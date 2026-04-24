@@ -80,7 +80,7 @@ def breadth_first_search(g, node):
         visited[c]=True
         i+=1
         for u in AdjacencyList(g,c):
-            get_parity(parity, i, u)
+            parity.append([u, i%2])
             if not visited[u] and not inqueue[u]:
                 de.append(u)
                 inqueue[u] = True
@@ -89,11 +89,5 @@ def breadth_first_search(g, node):
 def AdjacencyList(g,c):
     return g.get(c)
 
-def get_parity(parity, i, node):
-    if i%2==0:
-        parity.append([node, 0])
-    else:
-        parity.append([node, 1])
-    
 if __name__ == "__main__":
     main()
