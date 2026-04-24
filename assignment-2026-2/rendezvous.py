@@ -12,8 +12,11 @@ def main():
     
     g = get_graph(connections)
     
-    visited_a = breadth_first_search(g, begin_a)
-    visited_b = breadth_first_search(g, begin_b)
+    parity_a = breadth_first_search(g, begin_a)
+    parity_b = breadth_first_search(g, begin_b)
+    
+    print(parity_a)
+    print(parity_b)
     
     print(g)
     
@@ -67,18 +70,30 @@ def breadth_first_search(g, node):
         inqueue.append(False)
     de.append(node)
     inqueue[node]=True
+    
+    i = 0
+    parity = [[node, i]]
+    
     while not len(de) == 0:
         c = de.popleft()
         inqueue[c]=False
         visited[c]=True
+        i+=1
         for u in AdjacencyList(g,c):
+            get_parity(parity, i, u)
             if not visited[u] and not inqueue[u]:
                 de.append(u)
                 inqueue[u] = True
-    return visited
+    return parity
 
 def AdjacencyList(g,c):
     return g.get(c)
 
+def get_parity(parity, i, node):
+    if i%2==0:
+        parity.append([node, 0])
+    else:
+        parity.append([node, 1])
+    
 if __name__ == "__main__":
     main()
