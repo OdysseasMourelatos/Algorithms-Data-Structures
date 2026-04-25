@@ -46,9 +46,9 @@ def get_graph(filename, directed):
             g[nodes[0]] = []
         if nodes[1] not in g:
             g[nodes[1]] = []
-        g[nodes[0]].append(nodes[1])
+        bisect.insort(g[nodes[0]], nodes[1])
         if not directed:
-            g[nodes[1]].append(nodes[0])
+            bisect.insort(g[nodes[1]], nodes[0])
                 
     return g, begin_a, begin_b, total_nodes, total_links
 
