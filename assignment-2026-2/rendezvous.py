@@ -3,11 +3,11 @@ from collections import deque
 import bisect
 
 def main():
-    n = len(sys.argv)
-    if n == 2:
+    arguments = sys.argv
+    if len(arguments) == 2:
         directed = False
         filename = sys.argv[1]
-    elif n == 3:
+    elif len(arguments) == 3 and arguments[1] == "-d":
         directed = True
         filename = sys.argv[2]
 
