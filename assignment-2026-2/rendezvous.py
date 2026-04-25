@@ -5,60 +5,34 @@ import bisect
 def main():
     n = len(sys.argv)
     if n == 2:
+        directed = False
         filename = sys.argv[1]
     elif n == 3:
+        directed = True
         filename = sys.argv[2]
-    num_nodes, num_links, connections, begin_a, begin_b = get_txt_data(filename)
-    
-    g = get_graph(connections)
-    
+
+    g = get_graph(filename, directed)
+    print(g)
     parity_a = breadth_first_search(g, begin_a)
     parity_b = breadth_first_search(g, begin_b)
     
     print(parity_a)
     print(parity_b)
-    
-    print(g)
-    
-def get_txt_data(filename):
-    f = open(filename)
-    contents = list(f)
-    f.close()
-    
-    num_nodes = int(contents[0][0])
-    num_links = int(contents[0][2])
-    
-    connections = []
-    for i in range(1, len(contents) - 1):
-        node_1 = int(contents[i][0])
-        node_2 = int(contents[i][2])
-        connections.append([node_1, node_2])
-        
-    begin_a = int(contents[i+1][0])
-    begin_b = int(contents[i+1][2])   
-    
-    return num_nodes, num_links, connections, begin_a, begin_b
 
-def get_graph(connections):
+def get_graph(filename, directed):
     g = {}
-    
-    for connenction in connections:
-        node_a = connenction[0]
-        node_b = connenction[1]
-        value_a = g.get(node_a)
-        value_b = g.get(node_b)
-        
-        if  value_a is None:
-            g.update({node_a: [node_b]})
-        else:
-            value_a.append(node_b)
-            g.update({node_a: value_a})
-            
-        if value_b is None:
-            g.update({node_b: [node_a]})
-        else:
-            value_b.append(node_a)
-            g.update({node_b: value_b})
+    with open(filename) as graph_input:
+        for line in graph_input:
+            nodes = [int(x) for x in line.split()]
+            if len(nodes) != 2:
+                continue
+            if nodes[0] not in g:
+                g[nodes[0]] = []
+            if nodes[1] not in g:
+                g[nodes[1]] = []
+            g[nodes[0]].append(nodes[1])
+            if not directed:
+                g[nodes[1]].append(nodes[0])
     return g
 
 def breadth_first_search(g, node):
