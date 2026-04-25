@@ -12,12 +12,13 @@ def main():
         filename = sys.argv[2]
 
     g, begin_a, begin_b, nodes, links = get_graph(filename, directed)
-    print(g, begin_a, begin_b, nodes, links)
-    #parity_a = breadth_first_search(g, begin_a)
-    #parity_b = breadth_first_search(g, begin_b)
+    print(g)
     
-    #print(parity_a)
-    #print(parity_b)
+    parity_a = breadth_first_search(g, begin_a)
+    parity_b = breadth_first_search(g, begin_b)
+    
+    print(parity_a)
+    print(parity_b)
 
 def get_graph(filename, directed):
     g = {}
@@ -33,12 +34,12 @@ def get_graph(filename, directed):
             continue
             
         if i == 1:
-            begin_a = nodes[0]
-            begin_b = nodes[1]
-            continue
-        elif i == len(graph_input): 
             total_nodes = nodes[0]
             total_links = nodes[1]
+            continue
+        elif i == len(graph_input): 
+            begin_a = nodes[0]
+            begin_b = nodes[1]
             break
         
         if nodes[0] not in g:
