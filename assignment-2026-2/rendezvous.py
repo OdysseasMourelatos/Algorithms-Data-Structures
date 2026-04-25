@@ -11,21 +11,29 @@ def main():
         directed = True
         filename = sys.argv[2]
 
-    g = get_graph(filename, directed)
+    g, begin_a, begin_b, nodes, links = get_graph(filename, directed)
     print(g)
-    parity_a = breadth_first_search(g, begin_a)
-    parity_b = breadth_first_search(g, begin_b)
+    #parity_a = breadth_first_search(g, begin_a)
+    #parity_b = breadth_first_search(g, begin_b)
     
-    print(parity_a)
-    print(parity_b)
+    #print(parity_a)
+    #print(parity_b)
 
 def get_graph(filename, directed):
     g = {}
+    first_line = True
     with open(filename) as graph_input:
         for line in graph_input:
             nodes = [int(x) for x in line.split()]
             if len(nodes) != 2:
                 continue
+            
+            if first_line:
+                begin_a = nodes[0]
+                begin_b = nodes[1]
+                first_line = False
+                continue
+            
             if nodes[0] not in g:
                 g[nodes[0]] = []
             if nodes[1] not in g:
@@ -33,8 +41,24 @@ def get_graph(filename, directed):
             g[nodes[0]].append(nodes[1])
             if not directed:
                 g[nodes[1]].append(nodes[0])
-    return g
+                
+            last_a = nodes[0]
+            last_b = nodes[1]
+    
+    nodes = last_a
+    links = last_b
+    
+    remove_data(g, last_a, last_b)
+    if not directed:
+        remove_data(g, last_b, last_a)
+    
+    return g, begin_a, begin_b, nodes, links
 
+def remove_data(g, a, b):
+    for node in g.get(a):
+        if node == b:
+            g.get(a).remove(b)
+    
 def breadth_first_search(g, node):
     de = deque([])
     visited = []
