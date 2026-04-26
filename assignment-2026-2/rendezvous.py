@@ -15,10 +15,10 @@ def main():
     print(g)
     
     parity_a = breadth_first_search(g, begin_a)
-    parity_b = breadth_first_search(g, begin_b)
+    #parity_b = breadth_first_search(g, begin_b)
     
     print(parity_a)
-    print(parity_b)
+    #print(parity_b)
 
 def get_graph(filename, directed):
     g = {}
@@ -56,25 +56,32 @@ def breadth_first_search(g, node):
     de = deque([])
     visited = []
     inqueue = []
+    distance = []
     for i in range(len(g)):
         visited.append(False)
         inqueue.append(False)
+        distance.append(0)
     de.append(node)
     inqueue[node]=True
     
-    i = 0
-    parity = [[node, i]]
+    parity = [[node, 0]]
+    i=1
     
     while not len(de) == 0:
         c = de.popleft()
         inqueue[c]=False
         visited[c]=True
-        i+=1
+        new_node = False
         for u in AdjacencyList(g,c):
             parity.append([u, i%2])
             if not visited[u] and not inqueue[u]:
+                new_node = True
                 de.append(u)
+                distance[u]=i
                 inqueue[u] = True
+        if new_node:
+            i+=1
+    print(distance)
     return parity
 
 def AdjacencyList(g,c):
