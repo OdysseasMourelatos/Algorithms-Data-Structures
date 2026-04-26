@@ -57,28 +57,31 @@ def breadth_first_search(g, node):
     visited = []
     inqueue = []
     distance = []
+    prev = []
     for i in range(len(g)):
         visited.append(False)
         inqueue.append(False)
-        distance.append(0)
+        distance.append([-1,-1])
+        prev.append(-1)
+        
     de.append(node)
     inqueue[node]=True
-    
+    distance[node][0] = 0
     parity = [[node, 0]]
-    i=1
     
     while not len(de) == 0:
         c = de.popleft()
         inqueue[c]=False
         visited[c]=True
-        new_node = False
         for u in AdjacencyList(g,c):
-            parity.append([u, i%2])
+            #parity.append([u, distance[u]%2])
             if not visited[u] and not inqueue[u]:
                 de.append(u)
-                distance[u]=distance[c]+1
+                distance[u][0]=distance[c][0]+1
+                prev[u] = c
                 inqueue[u] = True
     print(distance)
+    print(prev)
     return parity
 
 def AdjacencyList(g,c):
