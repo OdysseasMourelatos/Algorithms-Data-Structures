@@ -21,11 +21,23 @@ def main():
     print(visited_b)
     
     meeting_nodes=[]
+    min_steps=2*links
+    meeting_node=(-1,-1)
     for i in range(len(g)):
         if visited_a[i][0] and visited_b[i][0]:
+            max_steps_between_the_two = max(distance_a[i][0],distance_b[i][0])
+            if max_steps_between_the_two <= min_steps:
+                min_steps = max_steps_between_the_two
+                meeting_node=(i,0)
             meeting_nodes.append([i,0])
         if visited_a[i][1] and visited_b[i][1]:
+            max_steps_between_the_two = max(distance_a[i][1],distance_b[i][1])
+            if max_steps_between_the_two <= min_steps:
+                min_steps = max_steps_between_the_two
+                meeting_node=(i,1)
             meeting_nodes.append([i,1])
+    print(min_steps)
+    print(meeting_node)
     print(meeting_nodes)
 
 def get_graph(filename, directed):
