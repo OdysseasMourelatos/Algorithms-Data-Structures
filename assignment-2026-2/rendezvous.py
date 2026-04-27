@@ -14,11 +14,19 @@ def main():
     g, begin_a, begin_b, nodes, links = get_graph(filename, directed)
     print(g)
     
-    parity_a = breadth_first_search(g, begin_a)
-    parity_b = breadth_first_search(g, begin_b)
+    visited_a, distance_a, prev_a = breadth_first_search(g, begin_a)
+    visited_b, distance_b, prev_b = breadth_first_search(g, begin_b)
     
-    #print(parity_a)
-    #print(parity_b)
+    print(visited_a)
+    print(visited_b)
+    
+    meeting_nodes=[]
+    for i in range(len(g)):
+        if visited_a[i][0] and visited_b[i][0]:
+            meeting_nodes.append([i,0])
+        if visited_a[i][1] and visited_b[i][1]:
+            meeting_nodes.append([i,1])
+    print(meeting_nodes)
 
 def get_graph(filename, directed):
     g = {}
@@ -74,17 +82,21 @@ def breadth_first_search(g, node):
         parity = c[1]%2
         inqueue[visited_node][parity]=False
         visited[visited_node][parity]=True
+        
         for u in AdjacencyList(g,visited_node):
             if not visited[u][1-parity] and not inqueue[u][1-parity]:
                 de.append([u, 1-parity])
                 distance[u][1-parity]=distance[visited_node][parity]+1
                 prev[u][1-parity] = visited_node
                 inqueue[u][1-parity] = True
-    print(prev)
-    return visited
+                
+    return visited, distance, prev
 
 def AdjacencyList(g,c):
     return g.get(c)
+
+def find_meeting_nodes():
+    print()
 
 if __name__ == "__main__":
     main()
