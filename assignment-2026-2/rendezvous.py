@@ -17,9 +17,6 @@ def main():
     visited_a, distance_a, prev_a = breadth_first_search(g, begin_a)
     visited_b, distance_b, prev_b = breadth_first_search(g, begin_b)
     
-    print(visited_a)
-    print(visited_b)
-    
     min_steps=-1
     meeting_node=(-1,-1)
     current_data=[min_steps, meeting_node]
@@ -29,19 +26,20 @@ def main():
             check_min_steps(distance_a[i][0],distance_b[i][0], i, 0, current_data)
         if visited_a[i][1] and visited_b[i][1]:
             check_min_steps(distance_a[i][1],distance_b[i][1], i, 1, current_data)
-            
-def check_min_steps(distance_a, distance_b, node, parity, current_data):
-    #Initial Check
-    if current_data[0]==-1:
-        current_data[0] = max(distance_a,distance_b)
-        current_data[1] = (node, parity)
-        return
     
-    max_steps_between_the_two = max(distance_a,distance_b)
-    if max_steps_between_the_two <= current_data[0]:
-        current_data[0] = max_steps_between_the_two
-        current_data[1] = (node, parity)
-      
+    min_steps = current_data[0]
+    meeting_node = current_data[1][0]
+    parity = current_data[1][1]
+    
+    prev_node = meeting_node
+    path = [meeting_node]
+    while prev_node!=0:
+        prev_node = prev_a[prev_node][parity]
+        parity = 1 - parity
+        path.insert(0, prev_node)
+    print(path)
+        
+        
 def get_graph(filename, directed):
     g = {}
     f = open(filename)
@@ -109,8 +107,17 @@ def breadth_first_search(g, node):
 def AdjacencyList(g,c):
     return g.get(c)
 
-def find_meeting_nodes():
-    print()
+def check_min_steps(distance_a, distance_b, node, parity, current_data):
+    #Initial Check
+    if current_data[0]==-1:
+        current_data[0] = max(distance_a,distance_b)
+        current_data[1] = (node, parity)
+        return
+    
+    max_steps_between_the_two = max(distance_a,distance_b)
+    if max_steps_between_the_two <= current_data[0]:
+        current_data[0] = max_steps_between_the_two
+        current_data[1] = (node, parity)
 
 if __name__ == "__main__":
     main()
