@@ -33,9 +33,7 @@ def main():
     path_a = get_path(meeting_node, begin_a, prev_a, parity)
     path_b = get_path(meeting_node, begin_b, prev_b, parity)
     
-    for i in range(min_steps + 1):
-        print(str(i) + ": Alice at " + str(path_a[i]) + ", Bob at " + str(path_b[i]))
-    print("Meeting at node " + str(meeting_node) + " at time step " + str(min_steps))
+    print_results(min_steps, path_a, path_b, meeting_node)
     
 def get_graph(filename, directed):
     g = {}
@@ -125,5 +123,10 @@ def get_path(meeting_node, begin_node, prev, parity):
         path.insert(0, prev_node)
     return path
 
+def print_results(min_steps, path_a, path_b, meeting_node):
+    for i in range(min_steps + 1):
+        print(str(i) + ": Alice at " + str(path_a[i]) + ", Bob at " + str(path_b[i]))
+    print("Meeting at node " + str(meeting_node) + " at time step " + str(min_steps))
+    
 if __name__ == "__main__":
     main()
