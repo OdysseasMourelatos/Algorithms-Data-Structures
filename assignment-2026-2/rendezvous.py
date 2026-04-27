@@ -17,8 +17,8 @@ def main():
     parity_a = breadth_first_search(g, begin_a)
     parity_b = breadth_first_search(g, begin_b)
     
-    print(parity_a)
-    print(parity_b)
+    #print(parity_a)
+    #print(parity_b)
 
 def get_graph(filename, directed):
     g = {}
@@ -64,7 +64,6 @@ def breadth_first_search(g, node):
         distance.append([-1,-1])
         prev.append(-1)
     
-    print(visited)
     de.append([node,0])
     inqueue[node][0]=True
     distance[node][0] = 0
@@ -80,11 +79,10 @@ def breadth_first_search(g, node):
             #parity.append([u, distance[u]%2])
             if not visited[u][1-parity] and not inqueue[u][1-parity]:
                 de.append([u, 1-parity])
-                #distance[u][0]=distance[c][0]+1
+                distance[u][1-parity]=distance[visited_node][parity]+1
                 prev[u] = c
                 inqueue[u][1-parity] = True
-        print(de)
-    #print(distance)
+    print(distance)
     #print(prev)
     return visited
 
