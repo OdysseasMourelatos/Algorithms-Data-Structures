@@ -20,26 +20,28 @@ def main():
     print(visited_a)
     print(visited_b)
     
-    meeting_nodes=[]
-    min_steps=2*links
+    min_steps=-1
     meeting_node=(-1,-1)
+    current_data=[min_steps, meeting_node]
+
     for i in range(len(g)):
         if visited_a[i][0] and visited_b[i][0]:
-            max_steps_between_the_two = max(distance_a[i][0],distance_b[i][0])
-            if max_steps_between_the_two <= min_steps:
-                min_steps = max_steps_between_the_two
-                meeting_node=(i,0)
-            meeting_nodes.append([i,0])
+            check_min_steps(distance_a[i][0],distance_b[i][0], i, 0, current_data)
         if visited_a[i][1] and visited_b[i][1]:
-            max_steps_between_the_two = max(distance_a[i][1],distance_b[i][1])
-            if max_steps_between_the_two <= min_steps:
-                min_steps = max_steps_between_the_two
-                meeting_node=(i,1)
-            meeting_nodes.append([i,1])
-    print(min_steps)
-    print(meeting_node)
-    print(meeting_nodes)
-
+            check_min_steps(distance_a[i][1],distance_b[i][1], i, 1, current_data)
+            
+def check_min_steps(distance_a, distance_b, node, parity, current_data):
+    #Initial Check
+    if current_data[0]==-1:
+        current_data[0] = max(distance_a,distance_b)
+        current_data[1] = (node, parity)
+        return
+    
+    max_steps_between_the_two = max(distance_a,distance_b)
+    if max_steps_between_the_two <= current_data[0]:
+        current_data[0] = max_steps_between_the_two
+        current_data[1] = (node, parity)
+      
 def get_graph(filename, directed):
     g = {}
     f = open(filename)
