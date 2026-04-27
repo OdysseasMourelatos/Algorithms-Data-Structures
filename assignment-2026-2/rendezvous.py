@@ -31,15 +31,21 @@ def main():
     meeting_node = current_data[1][0]
     parity = current_data[1][1]
     
+    path_a = get_path(meeting_node, begin_a, prev_a, parity)
+    path_b = get_path(meeting_node, begin_b, prev_b, parity)
+    
+    print(path_a)
+    print(path_b)
+    
+def get_path(meeting_node, begin_node, prev, parity):
     prev_node = meeting_node
     path = [meeting_node]
-    while prev_node!=0:
-        prev_node = prev_a[prev_node][parity]
+    while prev_node!=begin_node:
+        prev_node = prev[prev_node][parity]
         parity = 1 - parity
         path.insert(0, prev_node)
-    print(path)
-        
-        
+    return path
+
 def get_graph(filename, directed):
     g = {}
     f = open(filename)
