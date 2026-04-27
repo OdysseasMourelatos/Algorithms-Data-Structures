@@ -12,7 +12,6 @@ def main():
         filename = sys.argv[2]
 
     g, begin_a, begin_b, nodes, links = get_graph(filename, directed)
-    print(g)
     
     visited_a, distance_a, prev_a = breadth_first_search(g, begin_a)
     visited_b, distance_b, prev_b = breadth_first_search(g, begin_b)
@@ -34,18 +33,10 @@ def main():
     path_a = get_path(meeting_node, begin_a, prev_a, parity)
     path_b = get_path(meeting_node, begin_b, prev_b, parity)
     
-    print(path_a)
-    print(path_b)
+    for i in range(min_steps + 1):
+        print(str(i) + ": Alice at " + str(path_a[i]) + ", Bob at " + str(path_b[i]))
+    print("Meeting at node " + str(meeting_node) + " at time step " + str(min_steps))
     
-def get_path(meeting_node, begin_node, prev, parity):
-    prev_node = meeting_node
-    path = [meeting_node]
-    while prev_node!=begin_node:
-        prev_node = prev[prev_node][parity]
-        parity = 1 - parity
-        path.insert(0, prev_node)
-    return path
-
 def get_graph(filename, directed):
     g = {}
     f = open(filename)
@@ -124,6 +115,15 @@ def check_min_steps(distance_a, distance_b, node, parity, current_data):
     if max_steps_between_the_two <= current_data[0]:
         current_data[0] = max_steps_between_the_two
         current_data[1] = (node, parity)
+
+def get_path(meeting_node, begin_node, prev, parity):
+    prev_node = meeting_node
+    path = [meeting_node]
+    while prev_node!=begin_node:
+        prev_node = prev[prev_node][parity]
+        parity = 1 - parity
+        path.insert(0, prev_node)
+    return path
 
 if __name__ == "__main__":
     main()
