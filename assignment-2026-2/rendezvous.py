@@ -53,7 +53,8 @@ def main():
                 path = get_path(begin_b, begin_a, prev_a, min_distance%2)
                 middle_node = path[int(len(path)/2)]
                 prev_by_two = path[middle_node - 2]
-                adjust_graph()
+                adjust_graph(g, prev_by_two, middle_node)
+                print(g)
                 
 def get_graph(filename, directed):
     g = {}
@@ -143,6 +144,10 @@ def get_path(meeting_node, begin_node, prev, parity):
         path.insert(0, prev_node)
     return path
 
+def adjust_graph(g, node_A, node_B):
+    bisect.insort(g[node_A], node_B)
+    bisect.insort(g[node_B], node_A)
+    
 def print_successful_results(min_steps, path_a, path_b, meeting_node):
     for i in range(min_steps + 1):
         print(str(i) + ": Alice at " + str(path_a[i]) + ", Bob at " + str(path_b[i]))
@@ -151,6 +156,5 @@ def print_successful_results(min_steps, path_a, path_b, meeting_node):
 def print_failed_results():
     print("No meeting is possible.")
     print("Could not establish a rendezvous by adding edges.")
-    
 if __name__ == "__main__":
     main()
