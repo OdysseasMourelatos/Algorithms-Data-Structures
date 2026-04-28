@@ -44,31 +44,12 @@ def main():
             
             #Neighbors
             if min_distance == 1:
-                neighbors = sorted(g[begin_a] + g[begin_b])
-                for neighbor in neighbors:
-                    if neighbor!=begin_a and neighbor!=begin_b:
-                        new_neighbor = neighbor
-                        break
-                p = bisect.bisect_left(g[begin_a], new_neighbor)
-                
-                if new_neighbor == g[begin_a][p]:
-                    node_for_connection = begin_b
-                else:
-                    node_for_connection = begin_a
-                    
-                adjust_graph(g, node_for_connection, new_neighbor)
-                links+=1
-                print(g)
-                
+                neighbors_adjustment(g, begin_a, begin_b)
             #Not Neighbors
             else:
-                path = get_path(begin_b, begin_a, prev_a, min_distance%2)
-                middle_node = path[int(len(path)/2)]
-                prev_by_two = path[middle_node - 2]
-                adjust_graph(g, prev_by_two, middle_node)
-                links+=1
-                print(g)
-
+                non_neighbors_adjustment(g, begin_b, begin_a, prev_a, min_distance)
+            links+=1
+            
 def parse_arguments():
     arguments = sys.argv
     if len(arguments) == 2:
@@ -167,10 +148,31 @@ def get_path(meeting_node, begin_node, prev, parity):
         path.insert(0, prev_node)
     return path
 
+def neighbors_adjustment(g, begin_a, begin_b):
+    neighbors = sorted(g[begin_a] + g[begin_b])
+    for neighbor in neighbors:
+        if neighbor!=begin_a and neighbor!=begin_b:
+            new_neighbor = neighbor
+            break
+    p = bisect.bisect_left(g[begin_a], new_neighbor)
+                
+    if new_neighbor == g[begin_a][p]:
+        node_for_connection = begin_b
+    else:
+        node_for_connection = begin_a
+                    
+    adjust_graph(g, node_for_connection, new_neighbor)
+
+def non_neighbors_adjustment(g, begin_b, begin_a, prev_a, min_distance):
+    path = get_path(begin_b, begin_a, prev_a, min_distance%2)
+    middle_node = path[int(len(path)/2)]
+    prev_by_two = path[middle_node - 2]
+    adjust_graph(g, prev_by_two, middle_node)  
+
 def adjust_graph(g, node_A, node_B):
     bisect.insort(g[node_A], node_B)
     bisect.insort(g[node_B], node_A)
-    
+   
 def print_successful_results(min_steps, path_a, path_b, meeting_node):
     for i in range(min_steps + 1):
         print(str(i) + ": Alice at " + str(path_a[i]) + ", Bob at " + str(path_b[i]))
@@ -179,5 +181,6 @@ def print_successful_results(min_steps, path_a, path_b, meeting_node):
 def print_failed_results():
     print("No meeting is possible.")
     print("Could not establish a rendezvous by adding edges.")
+
 if __name__ == "__main__":
     main()
