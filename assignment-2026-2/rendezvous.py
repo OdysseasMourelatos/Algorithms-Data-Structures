@@ -8,13 +8,16 @@ def main():
     
     g, begin_a, begin_b, nodes, links = get_graph(filename, directed)
     
+    perform_activities(g, begin_a, begin_b, nodes, links)
+
+def perform_activities(g, begin_a, begin_b, nodes, links): 
     visited_a, distance_a, prev_a, visited_b, distance_b, prev_b = perform_breadth_first_search(g, begin_a, begin_b)
     min_steps, meeting_node, parity = find_meeting_nodes(g, visited_a, visited_b, distance_a, distance_b)
     updated_links = output_check(g, begin_a, begin_b, prev_a, prev_b, meeting_node, min_steps, parity, distance_a, links)
     
     #If there is an update on the graph, it means we failed to find a meeting node and hence adjusted the graph
     if updated_links != links:
-        print("Work to do")
+        perform_activities(g, begin_a, begin_b, nodes, updated_links)
    
 def parse_arguments():
     arguments = sys.argv
@@ -186,6 +189,7 @@ def non_neighbors_adjustment(g, begin_b, begin_a, prev_a, min_distance):
 def adjust_graph(g, node_A, node_B):
     bisect.insort(g[node_A], node_B)
     bisect.insort(g[node_B], node_A)
+    print_adjustment(node_A, node_B)
    
 def print_successful_results(min_steps, path_a, path_b, meeting_node):
     for i in range(min_steps + 1):
@@ -195,6 +199,11 @@ def print_successful_results(min_steps, path_a, path_b, meeting_node):
 def print_failed_results():
     print("No meeting is possible.")
     print("Could not establish a rendezvous by adding edges.")
+
+def print_adjustment(node_A, node_B):
+    print("No meeting is possible.")
+    print("Adding 1 edge.")
+    print("Adding " + str(node_A) + " " + str(node_B) + ".")
 
 if __name__ == "__main__":
     main()
