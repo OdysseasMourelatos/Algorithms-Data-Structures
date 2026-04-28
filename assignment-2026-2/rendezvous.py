@@ -3,14 +3,9 @@ from collections import deque
 import bisect
 
 def main():
-    arguments = sys.argv
-    if len(arguments) == 2:
-        directed = False
-        filename = sys.argv[1]
-    elif len(arguments) == 3 and arguments[1] == "-d":
-        directed = True
-        filename = sys.argv[2]
-
+    
+    directed, filename = parse_arguments()
+    
     g, begin_a, begin_b, nodes, links = get_graph(filename, directed)
     
     visited_a, distance_a, prev_a = breadth_first_search(g, begin_a)
@@ -47,15 +42,43 @@ def main():
             if min_distance == -1:
                 min_distance = max(distance_a[begin_b][0], distance_a[begin_b][1])
             
+            #Neighbors
             if min_distance == 1:
-                print(min_distance)
+                neighbors = sorted(g[begin_a] + g[begin_b])
+                for neighbor in neighbors:
+                    if neighbor!=begin_a and neighbor!=begin_b:
+                        new_neighbor = neighbor
+                        break
+                p = bisect.bisect_left(g[begin_a], new_neighbor)
+                
+                if new_neighbor == g[begin_a][p]:
+                    node_for_connection = begin_b
+                else:
+                    node_for_connection = begin_a
+                    
+                adjust_graph(g, node_for_connection, new_neighbor)
+                links+=1
+                print(g)
+                
+            #Not Neighbors
             else:
                 path = get_path(begin_b, begin_a, prev_a, min_distance%2)
                 middle_node = path[int(len(path)/2)]
                 prev_by_two = path[middle_node - 2]
                 adjust_graph(g, prev_by_two, middle_node)
+                links+=1
                 print(g)
-                
+
+def parse_arguments():
+    arguments = sys.argv
+    if len(arguments) == 2:
+        directed = False
+        filename = sys.argv[1]
+    elif len(arguments) == 3 and arguments[1] == "-d":
+        directed = True
+        filename = sys.argv[2]
+    return directed, filename
+    
 def get_graph(filename, directed):
     g = {}
     f = open(filename)
