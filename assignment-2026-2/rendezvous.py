@@ -47,7 +47,14 @@ def main():
             if min_distance == -1:
                 min_distance = max(distance_a[begin_b][0], distance_a[begin_b][1])
             
-
+            if min_distance == 1:
+                print(min_distance)
+            else:
+                path = get_path(begin_b, begin_a, prev_a, min_distance%2)
+                middle_node = path[int(len(path)/2)]
+                prev_by_two = path[middle_node - 2]
+                adjust_graph()
+                
 def get_graph(filename, directed):
     g = {}
     f = open(filename)
