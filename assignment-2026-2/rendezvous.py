@@ -30,11 +30,24 @@ def main():
     meeting_node = current_data[1][0]
     parity = current_data[1][1]
     
-    path_a = get_path(meeting_node, begin_a, prev_a, parity)
-    path_b = get_path(meeting_node, begin_b, prev_b, parity)
-    
-    print_results(min_steps, path_a, path_b, meeting_node)
-    
+    if meeting_node!=-1:
+        #There is a meeting node without any adjustments
+        path_a = get_path(meeting_node, begin_a, prev_a, parity)
+        path_b = get_path(meeting_node, begin_b, prev_b, parity)   
+        print_successful_results(min_steps, path_a, path_b, meeting_node)
+    else:
+        #There is no way in which Alice & Bob will meet
+        if distance_a[begin_b][0] ==-1 and distance_a[begin_b][1] ==-1:
+            print_failed_results()
+        #There is not a way for Alice & Bob to meet as of now, but could be adjusted
+        else:
+            #Initially searching for the min between the two possible distances
+            min_distance = min(distance_a[begin_b][0], distance_a[begin_b][1])
+            #If it's not possible (-1), we pick the other one
+            if min_distance == -1:
+                min_distance = max(distance_a[begin_b][0], distance_a[begin_b][1])
+            
+
 def get_graph(filename, directed):
     g = {}
     f = open(filename)
@@ -123,10 +136,14 @@ def get_path(meeting_node, begin_node, prev, parity):
         path.insert(0, prev_node)
     return path
 
-def print_results(min_steps, path_a, path_b, meeting_node):
+def print_successful_results(min_steps, path_a, path_b, meeting_node):
     for i in range(min_steps + 1):
         print(str(i) + ": Alice at " + str(path_a[i]) + ", Bob at " + str(path_b[i]))
     print("Meeting at node " + str(meeting_node) + " at time step " + str(min_steps))
+
+def print_failed_results():
+    print("No meeting is possible.")
+    print("Could not establish a rendezvous by adding edges.")
     
 if __name__ == "__main__":
     main()
