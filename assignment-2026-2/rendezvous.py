@@ -64,11 +64,28 @@ def perform_meeting_check(g, begin_a, begin_b, nodes, links, directed):
             perform_meeting_check(g, begin_a, begin_b, nodes, updated_links, directed)
     else:
         meeting_node = find_meeting_node_with_min_combined_steps(visited_a, visited_b, distance_a, distance_b)
-        added_link = adjust_directed_graph(g, meeting_node)
-        prev, new_meeting = breadth_first_search_with_cartesian_product(g, begin_a, begin_b)
-        if new_meeting != (-1,-1):
-            new_path = track_new_path(prev, new_meeting)
-            print_directed_g_results(added_link, new_path)
+        links = adjust_directed_graph(g, meeting_node)
+        min_length = -1
+        path = []
+        l = -1
+        for link in links:
+            bisect.insort(g[link[0]], link[1])  
+            prev, new_meeting = breadth_first_search_with_cartesian_product(g, begin_a, begin_b)
+            if new_meeting != (-1,-1):
+                new_path = track_new_path(prev, new_meeting)
+                if min_length == -1 or (min_length !=-1 and len(new_path) < min_length):
+                    min_length = len(new_path)
+                    path = new_path
+                    l = link
+            else:
+                g[link[0]].remove(link[1])
+                
+        #Found a meeting
+        if l!=-1:
+            print_directed_g_results(l, path)
+        #Failed to find a meeting
+        else:
+            print()
 
 def print_directed_g_results(added_link, path):
     print_adjustment(added_link[0], added_link[1])
@@ -294,14 +311,17 @@ def check_min_distance(dis_1, dis_2):
     return dis
      
 def adjust_directed_graph(g, meeting_node):
+    links = []
     for node in g:
+        #For all nodes, besides the node itself
         if node!=meeting_node:
+            #Search the node in its adjacency list
             p = bisect.bisect_left(g[node], meeting_node)
+            #If it exists (A->B)
             if g[node][p-1] == meeting_node:
-                bisect.insort(g[meeting_node], node)
-                added_link = (meeting_node, node)
-                break
-    return added_link
+                #Add (B->A) to the possible links
+                links.append((meeting_node, node))
+    return links
 
 if __name__ == "__main__":
     main()
