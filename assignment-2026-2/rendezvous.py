@@ -53,7 +53,7 @@ def get_graph(filename, directed):
     return g, begin_a, begin_b, total_nodes, total_links
 
 def perform_meeting_check(g, begin_a, begin_b, nodes, links, directed): 
-    visited_a, distance_a, prev_a, visited_b, distance_b, prev_b = perform_breadth_first_search(g, begin_a, begin_b)
+    visited_a, distance_a, prev_a, visited_b, distance_b, prev_b = perform_breadth_first_search_with_parity(g, begin_a, begin_b)
     min_steps, meeting_node, parity = find_meeting_nodes(g, visited_a, visited_b, distance_a, distance_b)
     
     #If the two distances match, it's either undirected or directed with matching distances - so no problem with the indexes
@@ -63,43 +63,16 @@ def perform_meeting_check(g, begin_a, begin_b, nodes, links, directed):
         if updated_links != links:
             perform_meeting_check(g, begin_a, begin_b, nodes, updated_links, directed)
     else:
-        min_distance, meeting_node = find_meeting_node_with_min_sum_steps(visited_a, visited_b, distance_a, distance_b)
-        print(min_distance, meeting_node)
-         
-
-def find_meeting_node_with_min_sum_steps(visited_a, visited_b, distance_a, distance_b):
-    #At this stage, we don't care about parity - we just want nodes where the two can meet irrespective of steps count
-    #Instead of performing a new breadth first search, will try to use results from the first one
-    min_distance=-1
-    meeting_node=-1
-    for i in range(len(visited_a)):
-        if (visited_a[i][0] or visited_a[i][1]) and (visited_b[i][0] or visited_b[i][1]):
-            dis_a = check_min_distance(distance_a[i][0], distance_a[i][1])
-            dis_b = check_min_distance(distance_b[i][0], distance_b[i][1])
-            new_min_distance = dis_a + dis_b
-            
-            #Check
-            if min_distance == -1:
-                min_distance = new_min_distance
-                meeting_node = i
-            else:
-                if new_min_distance < min_distance:
-                    min_distance = new_min_distance
-                    meeting_node = i
-    return min_distance, meeting_node
-
-def check_min_distance(dis_1, dis_2):
-    dis = min(dis_1, dis_2)
-    if dis == -1:
-        dis = max(dis_1, dis_2)
-    return dis
-    
-def perform_breadth_first_search(g, begin_a, begin_b):
-    visited_a, distance_a, prev_a = breadth_first_search(g, begin_a)
-    visited_b, distance_b, prev_b = breadth_first_search(g, begin_b)
+        meeting_node = find_meeting_node_with_min_combined_steps(visited_a, visited_b, distance_a, distance_b)
+        added_link = adjust_directed_graph(g, meeting_node)
+        print(added_link)
+                     
+def perform_breadth_first_search_with_parity(g, begin_a, begin_b):
+    visited_a, distance_a, prev_a = breadth_first_search_with_parity(g, begin_a)
+    visited_b, distance_b, prev_b = breadth_first_search_with_parity(g, begin_b)
     return visited_a, distance_a, prev_a, visited_b, distance_b, prev_b
 
-def breadth_first_search(g, node):
+def breadth_first_search_with_parity(g, node):
     de = deque()
     visited = []
     inqueue = []
@@ -206,21 +179,21 @@ def neighbors_adjustment(g, begin_a, begin_b):
             new_neighbor = neighbor
             break
     p = bisect.bisect_left(g[begin_a], new_neighbor)
-                
+    
     if new_neighbor == g[begin_a][p]:
         node_for_connection = begin_b
     else:
         node_for_connection = begin_a
                     
-    adjust_graph(g, node_for_connection, new_neighbor)
+    adjust_undirected_graph(g, node_for_connection, new_neighbor)
 
 def non_neighbors_adjustment(g, begin_b, begin_a, prev_a, min_distance):
     path = get_path(begin_b, begin_a, prev_a, min_distance%2)
     middle_node = path[int(len(path)/2)]
     prev_by_two = path[middle_node - 2]
-    adjust_graph(g, prev_by_two, middle_node)  
+    adjust_undirected_graph(g, prev_by_two, middle_node)  
 
-def adjust_graph(g, node_A, node_B):
+def adjust_undirected_graph(g, node_A, node_B):
     bisect.insort(g[node_A], node_B)
     bisect.insort(g[node_B], node_A)
     print_adjustment(node_A, node_B)
@@ -238,6 +211,45 @@ def print_adjustment(node_A, node_B):
     print("No meeting is possible.")
     print("Adding 1 edge.")
     print("Adding " + str(node_A) + " " + str(node_B) + ".")
+
+def find_meeting_node_with_min_combined_steps(visited_a, visited_b, distance_a, distance_b):
+    #At this stage, we don't care about parity - we just want nodes where the two can meet irrespective of steps count
+    #Instead of performing a new breadth first search, will try to use results from the first one
+    min_distance=-1
+    meeting_node=-1
+    
+    for i in range(len(visited_a)):
+        if (visited_a[i][0] or visited_a[i][1]) and (visited_b[i][0] or visited_b[i][1]):
+            dis_a = check_min_distance(distance_a[i][0], distance_a[i][1])
+            dis_b = check_min_distance(distance_b[i][0], distance_b[i][1])
+            new_min_distance = dis_a + dis_b
+            
+            #Check
+            if min_distance == -1:
+                min_distance = new_min_distance
+                meeting_node = i
+            else:
+                if new_min_distance < min_distance:
+                    min_distance = new_min_distance
+                    meeting_node = i
+                    
+    return meeting_node
+
+def check_min_distance(dis_1, dis_2):
+    dis = min(dis_1, dis_2)
+    if dis == -1:
+        dis = max(dis_1, dis_2)
+    return dis
+     
+def adjust_directed_graph(g, meeting_node):
+    for node in g:
+        if node!=meeting_node:
+            p = bisect.bisect_left(g[node], meeting_node)
+            if g[node][p-1] == meeting_node:
+                bisect.insort(g[meeting_node], node)
+                added_link = (meeting_node, node)
+                break
+    return added_link
 
 if __name__ == "__main__":
     main()
