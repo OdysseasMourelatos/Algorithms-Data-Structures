@@ -65,8 +65,34 @@ def perform_meeting_check(g, begin_a, begin_b, nodes, links, directed):
     else:
         meeting_node = find_meeting_node_with_min_combined_steps(visited_a, visited_b, distance_a, distance_b)
         added_link = adjust_directed_graph(g, meeting_node)
-        print(added_link)
-                     
+        breadth_first_search_with_cartesian_product(g, begin_a, begin_b)
+
+def breadth_first_search_with_cartesian_product(g, begin_a, begin_b):
+    de = deque()
+    visited = {}
+    inqueue = {}
+    prev = {}
+    
+    de.append((begin_a, begin_b))
+    visited[(begin_a, begin_b)] = False
+    inqueue[(begin_a, begin_b)] = True
+    prev[(begin_a, begin_b)] = -1
+    
+    while not len(de) == 0:
+        print(de)
+        a,b = de.popleft()
+        visited[(a,b)] = True
+        inqueue[(a,b)] = False
+        for node_a in AdjacencyList(g, a):
+            for node_b in AdjacencyList(g, b):
+                v = visited.get((node_a, node_b))
+                i = inqueue.get((node_a, node_b))
+                if (not v or v is None) and (not i or i is None):
+                    de.append((node_a, node_b))
+                    inqueue[(node_a, node_b)] = True
+                    prev[(node_a, node_b)] = (a, b)
+    print(prev)
+    
 def perform_breadth_first_search_with_parity(g, begin_a, begin_b):
     visited_a, distance_a, prev_a = breadth_first_search_with_parity(g, begin_a)
     visited_b, distance_b, prev_b = breadth_first_search_with_parity(g, begin_b)
