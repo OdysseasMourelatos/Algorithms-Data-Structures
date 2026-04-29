@@ -66,8 +66,29 @@ def perform_meeting_check(g, begin_a, begin_b, nodes, links, directed):
         meeting_node = find_meeting_node_with_min_combined_steps(visited_a, visited_b, distance_a, distance_b)
         added_link = adjust_directed_graph(g, meeting_node)
         prev, new_meeting = breadth_first_search_with_cartesian_product(g, begin_a, begin_b)
-        print(prev, new_meeting)
+        if new_meeting != (-1,-1):
+            new_path = track_new_path(prev, new_meeting)
+            print_directed_g_results(added_link, new_path)
 
+def print_directed_g_results(added_link, path):
+    print_adjustment(added_link[0], added_link[1])
+
+    path_a = []
+    path_b = []
+    for p in path:
+        path_a.append(p[0])
+        path_b.append(p[1])
+
+    print_successful_results(len(path) -1, path_a, path_b)
+    
+def track_new_path(prev, new_meeting):
+    c = new_meeting
+    path = [c]
+    while prev.get((c)) != -1:
+        c = prev.get((c))
+        path.insert(0, c)
+    return path
+            
 def breadth_first_search_with_cartesian_product(g, begin_a, begin_b):
     de = deque()
     visited = {}
@@ -180,7 +201,7 @@ def output_check(g, begin_a, begin_b, prev_a, prev_b, meeting_node, min_steps, p
         #There is a meeting node without any adjustments
         path_a = get_path(meeting_node, begin_a, prev_a, parity)
         path_b = get_path(meeting_node, begin_b, prev_b, parity)   
-        print_successful_results(min_steps, path_a, path_b, meeting_node)
+        print_successful_results(min_steps, path_a, path_b)
     else:
         if not directed:
             #There is no way in which Alice & Bob will meet
@@ -229,10 +250,10 @@ def adjust_undirected_graph(g, node_A, node_B):
     bisect.insort(g[node_B], node_A)
     print_adjustment(node_A, node_B)
    
-def print_successful_results(min_steps, path_a, path_b, meeting_node):
-    for i in range(min_steps + 1):
+def print_successful_results(steps, path_a, path_b):
+    for i in range(steps + 1):
         print(str(i) + ": Alice at " + str(path_a[i]) + ", Bob at " + str(path_b[i]))
-    print("Meeting at node " + str(meeting_node) + " at time step " + str(min_steps) + ".")
+    print("Meeting at node " + str(path_a[i]) + " at time step " + str(steps) + ".")
 
 def print_failed_results():
     print("No meeting is possible.")
