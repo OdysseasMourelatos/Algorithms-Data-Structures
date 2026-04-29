@@ -57,13 +57,41 @@ def perform_meeting_check(g, begin_a, begin_b, nodes, links, directed):
     min_steps, meeting_node, parity = find_meeting_nodes(g, visited_a, visited_b, distance_a, distance_b)
     
     #If the two distances match, it's either undirected or directed with matching distances - so no problem with the indexes
-    
     if not directed or (directed and distance_a[meeting_node][min_steps%2] == distance_b[meeting_node][min_steps%2]):
         updated_links = output_check(g, begin_a, begin_b, prev_a, prev_b, meeting_node, min_steps, parity, distance_a, links, directed)
         #If there is an update on the graph, it means we failed to find a meeting node and hence adjusted the graph
         if updated_links != links:
             perform_meeting_check(g, begin_a, begin_b, nodes, updated_links, directed)
+    else:
+        find_meeting_node_with_min_sum_steps()
+        current_min_distance=-1
+        meeting_node=-1
+        
+        for i in range(len(visited_a)):
+            if (visited_a[i][0] or visited_a[i][1]) and (visited_b[i][0] or visited_b[i][1]):
+                dis_a = min(distance_a[i][0], distance_a[i][1])
+                if dis_a == -1:
+                    dis_a = max(distance_a[i][0], distance_a[i][1])
+                dis_b = min(distance_b[i][0], distance_b[i][1])
+                if dis_b == -1:
+                    dis_b = max(distance_b[i][0], distance_b[i][1])
+                min_distance = dis_a + dis_b
+                if current_min_distance == -1:
+                    current_min_distance = min_distance
+                    meeting_node = i
+                else:
+                    if min_distance < current_min_distance:
+                        current_min_distance = min_distance
+                        meeting_node = i 
+                
+        print(meeting_node)
+        print(current_min_distance)
 
+def find_meeting_node_with_min_sum_steps():
+    #At this stage, we don't care about parity - we just want nodes where the two can meet irrespective of steps count
+    #Instead of performing a new breadth first search, will try to use results from the first one
+    print() 
+    
 def perform_breadth_first_search(g, begin_a, begin_b):
     visited_a, distance_a, prev_a = breadth_first_search(g, begin_a)
     visited_b, distance_b, prev_b = breadth_first_search(g, begin_b)
