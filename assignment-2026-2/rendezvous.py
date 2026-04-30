@@ -70,7 +70,7 @@ def perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed):
         perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, circles_2_links, circles_3_links, failed)
         
 def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, circles_2_links, circles_3_links, failed, og_node = None):
-    #2-circles
+    #2-step circles
     if og_node is None:
         links = adjust_directed_graph(g, meeting_node, True)
         for link in links:
@@ -79,6 +79,7 @@ def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meet
             if p != len(circles_2_links) and circles_2_links[p] == link:
                 continue
             bisect.insort(circles_2_links, link)
+    #3-step circles
     else:
         links = adjust_directed_graph(g, meeting_node, False, og_node)
         for link in links:
@@ -87,8 +88,8 @@ def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meet
             if p != len(circles_3_links) and circles_3_links[p] == link:
                 continue
             bisect.insort(circles_3_links, link)
-    
-    l, path, failed = circles_check_for_possible_meetings(g, begin_a, begin_b, links, failed)
+            
+    path, l, failed = circles_check_for_possible_meetings(g, begin_a, begin_b, links, failed, False)
     #Found a meeting
     if l!=-1:
         print_directed_g_results(l, path)
@@ -97,8 +98,9 @@ def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meet
         if len(circles_3_links) == 0:
             for link in links:
                 perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, link[1], circles_2_links, circles_3_links, failed, meeting_node)
+            #When the recursion stops
+            circles_check_for_possible_meetings(g, begin_a, begin_b, circles_2_links, failed, True, circles_3_links)
         
-
 def adjust_directed_graph(g, meeting_node, circles_2 , og_node = None):
     links = []
     for node in g:
@@ -115,30 +117,43 @@ def adjust_directed_graph(g, meeting_node, circles_2 , og_node = None):
                     links.append((og_node, node))
     return links
 
-def circles_check_for_possible_meetings(g, begin_a, begin_b, links, failed):
+def circles_check_for_possible_meetings(g, begin_a, begin_b, links, failed, combination, links_3 = None):
     min_length = -1
     path = []
     l = -1
+    data = [min_length, path, l]
     for link in links:
-        #Check if we already tested this connection
-        p = bisect.bisect_left(failed, (link[0], link[1]))
-        if p != len(failed) and failed[p] == (link[0], link[1]):
-            break
-        
-        #If not, test it
-        bisect.insort(g[link[0]], link[1])  
-        prev, new_meeting = breadth_first_search_with_cartesian_product(g, begin_a, begin_b)
-        if new_meeting != (-1,-1):
-            new_path = track_new_path(prev, new_meeting)
-            if min_length == -1 or (min_length !=-1 and len(new_path) < min_length):
-                min_length = len(new_path)
-                path = new_path
-                l = link
+        if not combination:
+            #Check if we already tested this connection
+            p = bisect.bisect_left(failed, (link[0], link[1]))
+            if p != len(failed) and failed[p] == (link[0], link[1]):
+                break
+            #If not, test it
+            bisect.insort(g[link[0]], link[1])  
         else:
-            bisect.insort(failed, (link[0], link[1]))
-            g[link[0]].remove(link[1])
-    return l, path, failed
+            for link_3 in links_3:
+                bisect.insort(g[link[0]], link[1])
+                bisect.insort(g[link_3[0]], link_3[1])
+        data = run_search(g, begin_a, begin_b, data, link, failed)
+    
+    path, l  = data[1], data[2]
+    return path, l, failed
 
+def run_search(g, begin_a, begin_b, data, link, failed):
+    min_length, path, l = data[0], data[1], data[2]
+    prev, new_meeting = breadth_first_search_with_cartesian_product(g, begin_a, begin_b)
+    if new_meeting != (-1,-1):
+        new_path = track_new_path(prev, new_meeting)
+        if min_length == -1 or (min_length !=-1 and len(new_path) < min_length):
+            min_length = len(new_path)
+            path = new_path
+            l = link
+    else:
+        bisect.insort(failed, (link[0], link[1]))
+        g[link[0]].remove(link[1])
+    data[0], data[1], data[2] = min_length, path, l
+    return data
+    
 def perform_breadth_first_search_with_parity(g, begin_a, begin_b):
     visited_a, distance_a, prev_a = breadth_first_search_with_parity(g, begin_a)
     visited_b, distance_b, prev_b = breadth_first_search_with_parity(g, begin_b)
