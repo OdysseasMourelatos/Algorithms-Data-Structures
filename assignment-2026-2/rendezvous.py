@@ -8,7 +8,7 @@ def main():
     
     g, begin_a, begin_b, nodes, links = get_graph(filename, directed)
     
-    perform_meeting_check(g, begin_a, begin_b, nodes, links, directed)
+    perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed)
 
 def parse_arguments():
     arguments = sys.argv
@@ -52,7 +52,7 @@ def get_graph(filename, directed):
                 
     return g, begin_a, begin_b, total_nodes, total_links
 
-def perform_meeting_check(g, begin_a, begin_b, nodes, links, directed): 
+def perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed): 
     visited_a, distance_a, prev_a, visited_b, distance_b, prev_b = perform_breadth_first_search_with_parity(g, begin_a, begin_b)
     min_steps, meeting_node, parity = find_meeting_nodes(g, visited_a, visited_b, distance_a, distance_b)
     
@@ -61,81 +61,40 @@ def perform_meeting_check(g, begin_a, begin_b, nodes, links, directed):
         updated_links = output_check(g, begin_a, begin_b, prev_a, prev_b, meeting_node, min_steps, parity, distance_a, links, directed)
         #If there is an update on the graph, it means we failed to find a meeting node and hence adjusted the graph
         if updated_links != links:
-            perform_meeting_check(g, begin_a, begin_b, nodes, updated_links, directed)
+            perform_initial_meeting_check(g, begin_a, begin_b, nodes, updated_links, directed)
     else:
         meeting_node = find_meeting_node_with_min_combined_steps(visited_a, visited_b, distance_a, distance_b)
-        links = adjust_directed_graph(g, meeting_node)
-        min_length = -1
-        path = []
-        l = -1
-        for link in links:
-            bisect.insort(g[link[0]], link[1])  
-            prev, new_meeting = breadth_first_search_with_cartesian_product(g, begin_a, begin_b)
-            if new_meeting != (-1,-1):
-                new_path = track_new_path(prev, new_meeting)
-                if min_length == -1 or (min_length !=-1 and len(new_path) < min_length):
-                    min_length = len(new_path)
-                    path = new_path
-                    l = link
-            else:
-                g[link[0]].remove(link[1])
-                
-        #Found a meeting
-        if l!=-1:
-            print_directed_g_results(l, path)
-        #Failed to find a meeting
+        perform_advanced_meeting_check_for_directed_graphs(g, visited_a, visited_b, distance_a, distance_b, begin_a, begin_b, True, False)
+        
+def perform_advanced_meeting_check_for_directed_graphs(g, visited_a, visited_b, distance_a, distance_b, begin_a, begin_b, meeting_node, circles_2, circles_3):
+    #2-circles
+    links = adjust_directed_graph(g, meeting_node, )
+    l, path = circles_check_for_possible_meetings(g, begin_a, begin_b, links)
+    
+    #Found a meeting
+    if l!=-1:
+        print_directed_g_results(l, path)
+    #Failed to find a meeting
+    else:
+        print()
+
+def circles_check_for_possible_meetings(g, begin_a, begin_b, links):
+    min_length = -1
+    path = []
+    l = -1
+    for link in links:
+        bisect.insort(g[link[0]], link[1])  
+        prev, new_meeting = breadth_first_search_with_cartesian_product(g, begin_a, begin_b)
+        if new_meeting != (-1,-1):
+            new_path = track_new_path(prev, new_meeting)
+            if min_length == -1 or (min_length !=-1 and len(new_path) < min_length):
+                min_length = len(new_path)
+                path = new_path
+                l = link
         else:
-            print()
+            g[link[0]].remove(link[1])
+    return l, path
 
-def print_directed_g_results(added_link, path):
-    print_adjustment(added_link[0], added_link[1])
-
-    path_a = []
-    path_b = []
-    for p in path:
-        path_a.append(p[0])
-        path_b.append(p[1])
-
-    print_successful_results(len(path) -1, path_a, path_b)
-    
-def track_new_path(prev, new_meeting):
-    c = new_meeting
-    path = [c]
-    while prev.get((c)) != -1:
-        c = prev.get((c))
-        path.insert(0, c)
-    return path
-            
-def breadth_first_search_with_cartesian_product(g, begin_a, begin_b):
-    de = deque()
-    visited = {}
-    inqueue = {}
-    prev = {}
-    
-    de.append((begin_a, begin_b))
-    visited[(begin_a, begin_b)] = False
-    inqueue[(begin_a, begin_b)] = True
-    prev[(begin_a, begin_b)] = -1
-    found = False
-    meeting=(-1,-1)
-    
-    while not found and not len(de) == 0:
-        a,b = de.popleft()
-        visited[(a,b)] = True
-        inqueue[(a,b)] = False
-        for node_a in AdjacencyList(g, a):
-            for node_b in AdjacencyList(g, b):
-                if node_a == node_b:
-                    meeting = (node_a, node_b)
-                    found = True
-                v = visited.get((node_a, node_b))
-                i = inqueue.get((node_a, node_b))
-                if (not v or v is None) and (not i or i is None):
-                    de.append((node_a, node_b))
-                    inqueue[(node_a, node_b)] = True
-                    prev[(node_a, node_b)] = (a, b)
-    return prev, meeting
-    
 def perform_breadth_first_search_with_parity(g, begin_a, begin_b):
     visited_a, distance_a, prev_a = breadth_first_search_with_parity(g, begin_a)
     visited_b, distance_b, prev_b = breadth_first_search_with_parity(g, begin_b)
@@ -323,5 +282,54 @@ def adjust_directed_graph(g, meeting_node):
                 links.append((meeting_node, node))
     return links
 
+def breadth_first_search_with_cartesian_product(g, begin_a, begin_b):
+    de = deque()
+    visited = {}
+    inqueue = {}
+    prev = {}
+    
+    de.append((begin_a, begin_b))
+    visited[(begin_a, begin_b)] = False
+    inqueue[(begin_a, begin_b)] = True
+    prev[(begin_a, begin_b)] = -1
+    found = False
+    meeting=(-1,-1)
+    
+    while not found and not len(de) == 0:
+        a,b = de.popleft()
+        visited[(a,b)] = True
+        inqueue[(a,b)] = False
+        for node_a in AdjacencyList(g, a):
+            for node_b in AdjacencyList(g, b):
+                if node_a == node_b:
+                    meeting = (node_a, node_b)
+                    found = True
+                v = visited.get((node_a, node_b))
+                i = inqueue.get((node_a, node_b))
+                if (not v or v is None) and (not i or i is None):
+                    de.append((node_a, node_b))
+                    inqueue[(node_a, node_b)] = True
+                    prev[(node_a, node_b)] = (a, b)
+    return prev, meeting
+
+def track_new_path(prev, new_meeting):
+    c = new_meeting
+    path = [c]
+    while prev.get((c)) != -1:
+        c = prev.get((c))
+        path.insert(0, c)
+    return path
+
+def print_directed_g_results(added_link, path):
+    print_adjustment(added_link[0], added_link[1])
+
+    path_a = []
+    path_b = []
+    for p in path:
+        path_a.append(p[0])
+        path_b.append(p[1])
+
+    print_successful_results(len(path) -1, path_a, path_b)
+           
 if __name__ == "__main__":
     main()
