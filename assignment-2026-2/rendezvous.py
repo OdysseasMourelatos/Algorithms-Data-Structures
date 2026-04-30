@@ -92,6 +92,7 @@ def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meet
     path, l, failed = circles_check_for_possible_meetings(g, begin_a, begin_b, links, failed, False)
     #Found a meeting
     if l!=-1:
+        l = list([l])
         print_directed_g_results(l, path)
     #Failed to find a meeting
     else:
@@ -99,8 +100,11 @@ def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meet
             for link in links:
                 perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, link[1], circles_2_links, circles_3_links, failed, meeting_node)
             #When the recursion stops
-            circles_check_for_possible_meetings(g, begin_a, begin_b, circles_2_links, failed, True, circles_3_links)
-        
+            path, l_1, l_2 = circles_check_for_possible_meetings(g, begin_a, begin_b, circles_2_links, failed, True, circles_3_links)
+            if l_1!=-1 and l_2 !=-1:
+                l = list([l_1] + [l_2])
+                print_directed_g_results(l, path)
+                
 def adjust_directed_graph(g, meeting_node, circles_2 , og_node = None):
     links = []
     for node in g:
@@ -121,7 +125,11 @@ def circles_check_for_possible_meetings(g, begin_a, begin_b, links, failed, comb
     min_length = -1
     path = []
     l = -1
-    data = [min_length, path, l]
+    if not combination:
+        data = [min_length, path, l]
+    else:
+        l_2 = -1
+        data = [min_length, path, l, l_2]
     for link in links:
         if not combination:
             #Check if we already tested this connection
@@ -130,17 +138,24 @@ def circles_check_for_possible_meetings(g, begin_a, begin_b, links, failed, comb
                 break
             #If not, test it
             bisect.insort(g[link[0]], link[1])  
+            data = run_search(g, begin_a, begin_b, data, link, failed)
+            path, l  = data[1], data[2]
         else:
             for link_3 in links_3:
                 bisect.insort(g[link[0]], link[1])
                 bisect.insort(g[link_3[0]], link_3[1])
-        data = run_search(g, begin_a, begin_b, data, link, failed)
-    
-    path, l  = data[1], data[2]
-    return path, l, failed
+                data = run_search(g, begin_a, begin_b, data, link, failed, link_3)
+                path, l, l_2 = data[1], data[2], data[3]
+    if not combination:
+        return path, l, failed
+    else:
+        return path, l, l_2
 
-def run_search(g, begin_a, begin_b, data, link, failed):
-    min_length, path, l = data[0], data[1], data[2]
+def run_search(g, begin_a, begin_b, data, link, failed, link_2 = None):
+    if link_2 is None:
+        min_length, path, l = data[0], data[1], data[2]
+    else:
+        min_length, path, l, l_2 = data[0], data[1], data[2], data[3]
     prev, new_meeting = breadth_first_search_with_cartesian_product(g, begin_a, begin_b)
     if new_meeting != (-1,-1):
         new_path = track_new_path(prev, new_meeting)
@@ -148,10 +163,18 @@ def run_search(g, begin_a, begin_b, data, link, failed):
             min_length = len(new_path)
             path = new_path
             l = link
+            if link_2 is not None:
+                l_2 = link_2
     else:
         bisect.insort(failed, (link[0], link[1]))
         g[link[0]].remove(link[1])
-    data[0], data[1], data[2] = min_length, path, l
+        if link_2 is not None:
+            bisect.insort(failed, (link_2[0], link_2[1]))
+            g[link_2[0]].remove(link_2[1])
+    if link_2 is None:
+        data[0], data[1], data[2] = min_length, path, l
+    else:
+        data[0], data[1], data[2], data[3] = min_length, path, l, l_2
     return data
     
 def perform_breadth_first_search_with_parity(g, begin_a, begin_b):
@@ -298,6 +321,7 @@ def print_adjustment(node_A, node_B):
     print("No meeting is possible.")
     print("Adding 1 edge.")
     print("Adding " + str(node_A) + " " + str(node_B) + ".")
+    
 
 def find_meeting_node_with_min_combined_steps(visited_a, visited_b, distance_a, distance_b):
     #At this stage, we don't care about parity - we just want nodes where the two can meet irrespective of steps count
@@ -366,9 +390,11 @@ def track_new_path(prev, new_meeting):
         path.insert(0, c)
     return path
 
-def print_directed_g_results(added_link, path):
-    print_adjustment(added_link[0], added_link[1])
-
+def print_directed_g_results(added_links, path):
+    if len(added_links) == 1:
+        print_adjustment(added_links[0][0], added_links[0][1])
+    else:
+        print_two_adjustments(added_links)
     path_a = []
     path_b = []
     for p in path:
@@ -376,6 +402,12 @@ def print_directed_g_results(added_link, path):
         path_b.append(p[1])
 
     print_successful_results(len(path) -1, path_a, path_b)
-           
+ 
+def print_two_adjustments(nodes):
+    print("No meeting is possible.")
+    print("Adding 2 edges.")
+    print("Adding " + str(nodes[0][0]) + " " + str(nodes[0][1]) + ".")
+    print("Adding " + str(nodes[1][0]) + " " + str(nodes[1][1]) + ".")
+          
 if __name__ == "__main__":
     main()
