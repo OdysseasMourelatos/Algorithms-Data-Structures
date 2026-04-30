@@ -57,16 +57,15 @@ def perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed):
     min_steps, meeting_node, parity = find_meeting_nodes(g, visited_a, visited_b, distance_a, distance_b)
     
     #If the two distances match, it's either undirected or directed with matching distances - so no problem with the indexes
-    if not directed or (directed and distance_a[meeting_node][min_steps%2] == distance_b[meeting_node][min_steps%2]):
+    if (not directed or (directed and distance_a[meeting_node][min_steps%2] == distance_b[meeting_node][min_steps%2])) and meeting_node!=-1:
         updated_links = output_check(g, begin_a, begin_b, prev_a, prev_b, meeting_node, min_steps, parity, distance_a, links, directed)
         #If there is an update on the graph, it means we failed to find a meeting node and hence adjusted the graph
         if updated_links != links:
             perform_initial_meeting_check(g, begin_a, begin_b, nodes, updated_links, directed)
     else:
         meeting_node = find_meeting_node_with_min_combined_steps(visited_a, visited_b, distance_a, distance_b)
-        failed = []
-        circles_2_links = []
-        circles_3_links = []
+        
+        failed, circles_2_links, circles_3_links = [], [], []
         perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, circles_2_links, circles_3_links, failed)
         
 def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, circles_2_links, circles_3_links, failed, og_node = None):
@@ -88,7 +87,7 @@ def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meet
             if p != len(circles_3_links) and circles_3_links[p] == link:
                 continue
             bisect.insort(circles_3_links, link)
-            
+
     path, l, failed = circles_check_for_possible_meetings(g, begin_a, begin_b, links, failed, False)
     #Found a meeting
     if l!=-1:
@@ -96,14 +95,23 @@ def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meet
         print_directed_g_results(l, path)
     #Failed to find a meeting
     else:
-        if len(circles_3_links) == 0:
-            for link in links:
+        if len(circles_3_links) == 0 and links == circles_2_links:
+            for link in circles_2_links:
                 perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, link[1], circles_2_links, circles_3_links, failed, meeting_node)
             #When the recursion stops
-            path, l_1, l_2 = circles_check_for_possible_meetings(g, begin_a, begin_b, circles_2_links, failed, True, circles_3_links)
-            if l_1!=-1 and l_2 !=-1:
-                l = list([l_1] + [l_2])
-                print_directed_g_results(l, path)
+            #If we failed to create 3-step circles -> FAILED!
+            if len(circles_3_links) == 0:
+                print_failed_results()
+    
+            #We check the possible meetings
+            else:
+                path, l_1, l_2 = circles_check_for_possible_meetings(g, begin_a, begin_b, circles_2_links, failed, True, circles_3_links)
+                if l_1!=-1 and l_2 !=-1:
+                    l = list([l_1] + [l_2])
+                    print_directed_g_results(l, path)
+                else:
+                    #Everything failed
+                    print_failed_results()
                 
 def adjust_directed_graph(g, meeting_node, circles_2 , og_node = None):
     links = []
