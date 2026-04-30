@@ -65,26 +65,39 @@ def perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed):
     else:
         meeting_node = find_meeting_node_with_min_combined_steps(visited_a, visited_b, distance_a, distance_b)
         failed = []
-        perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, True, False, failed)
+        circles_2_links = []
+        circles_3_links = []
+        perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, circles_2_links, circles_3_links, failed)
         
-def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, circles_2, circles_3, failed, og_node = None):
+def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, circles_2_links, circles_3_links, failed, og_node = None):
     #2-circles
     if og_node is None:
-        links = adjust_directed_graph(g, meeting_node, circles_2)
+        links = adjust_directed_graph(g, meeting_node, True)
+        for link in links:
+            p = bisect.bisect_left(circles_2_links, link)
+            #Skip if we already have this 
+            if p != len(circles_2_links) and circles_2_links[p] == link:
+                continue
+            bisect.insort(circles_2_links, link)
     else:
-        links = adjust_directed_graph(g, meeting_node, circles_2, og_node)
+        links = adjust_directed_graph(g, meeting_node, False, og_node)
+        for link in links:
+            p = bisect.bisect_left(circles_3_links, link)
+            #Skip if we already have this
+            if p != len(circles_3_links) and circles_3_links[p] == link:
+                continue
+            bisect.insort(circles_3_links, link)
     
     l, path, failed = circles_check_for_possible_meetings(g, begin_a, begin_b, links, failed)
-
-    
     #Found a meeting
     if l!=-1:
         print_directed_g_results(l, path)
     #Failed to find a meeting
     else:
-        if circles_2:
+        if len(circles_3_links) == 0:
             for link in links:
-                perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, link[1], False, True, failed, meeting_node)
+                perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, link[1], circles_2_links, circles_3_links, failed, meeting_node)
+        
 
 def adjust_directed_graph(g, meeting_node, circles_2 , og_node = None):
     links = []
@@ -107,12 +120,12 @@ def circles_check_for_possible_meetings(g, begin_a, begin_b, links, failed):
     path = []
     l = -1
     for link in links:
-        print(failed)
-        print(link[0], link[1])
+        #Check if we already tested this connection
         p = bisect.bisect_left(failed, (link[0], link[1]))
-        print(p)
         if p != len(failed) and failed[p] == (link[0], link[1]):
             break
+        
+        #If not, test it
         bisect.insort(g[link[0]], link[1])  
         prev, new_meeting = breadth_first_search_with_cartesian_product(g, begin_a, begin_b)
         if new_meeting != (-1,-1):
