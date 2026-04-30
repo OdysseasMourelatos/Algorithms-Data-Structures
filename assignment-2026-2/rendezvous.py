@@ -64,25 +64,55 @@ def perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed):
             perform_initial_meeting_check(g, begin_a, begin_b, nodes, updated_links, directed)
     else:
         meeting_node = find_meeting_node_with_min_combined_steps(visited_a, visited_b, distance_a, distance_b)
-        perform_advanced_meeting_check_for_directed_graphs(g, visited_a, visited_b, distance_a, distance_b, begin_a, begin_b, True, False)
+        failed = []
+        perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, True, False, failed)
         
-def perform_advanced_meeting_check_for_directed_graphs(g, visited_a, visited_b, distance_a, distance_b, begin_a, begin_b, meeting_node, circles_2, circles_3):
+def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, circles_2, circles_3, failed, og_node = None):
     #2-circles
-    links = adjust_directed_graph(g, meeting_node, )
-    l, path = circles_check_for_possible_meetings(g, begin_a, begin_b, links)
+    if og_node is None:
+        links = adjust_directed_graph(g, meeting_node, circles_2)
+    else:
+        links = adjust_directed_graph(g, meeting_node, circles_2, og_node)
+    
+    l, path, failed = circles_check_for_possible_meetings(g, begin_a, begin_b, links, failed)
+
     
     #Found a meeting
     if l!=-1:
         print_directed_g_results(l, path)
     #Failed to find a meeting
     else:
-        print()
+        if circles_2:
+            for link in links:
+                perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, link[1], False, True, failed, meeting_node)
 
-def circles_check_for_possible_meetings(g, begin_a, begin_b, links):
+def adjust_directed_graph(g, meeting_node, circles_2 , og_node = None):
+    links = []
+    for node in g:
+        #For all nodes, besides the node itself
+        if node!=meeting_node:
+            #Search the node in its adjacency list
+            p = bisect.bisect_left(g[node], meeting_node)
+            #If it exists (A->B)
+            if p != len(g[node]) and g[node][p] == meeting_node:
+                if circles_2:
+                    #Add (B->A) to the possible links
+                    links.append((meeting_node, node))
+                else:
+                    links.append((og_node, node))
+    return links
+
+def circles_check_for_possible_meetings(g, begin_a, begin_b, links, failed):
     min_length = -1
     path = []
     l = -1
     for link in links:
+        print(failed)
+        print(link[0], link[1])
+        p = bisect.bisect_left(failed, (link[0], link[1]))
+        print(p)
+        if p != len(failed) and failed[p] == (link[0], link[1]):
+            break
         bisect.insort(g[link[0]], link[1])  
         prev, new_meeting = breadth_first_search_with_cartesian_product(g, begin_a, begin_b)
         if new_meeting != (-1,-1):
@@ -92,8 +122,9 @@ def circles_check_for_possible_meetings(g, begin_a, begin_b, links):
                 path = new_path
                 l = link
         else:
+            bisect.insort(failed, (link[0], link[1]))
             g[link[0]].remove(link[1])
-    return l, path
+    return l, path, failed
 
 def perform_breadth_first_search_with_parity(g, begin_a, begin_b):
     visited_a, distance_a, prev_a = breadth_first_search_with_parity(g, begin_a)
@@ -269,19 +300,6 @@ def check_min_distance(dis_1, dis_2):
         dis = max(dis_1, dis_2)
     return dis
      
-def adjust_directed_graph(g, meeting_node):
-    links = []
-    for node in g:
-        #For all nodes, besides the node itself
-        if node!=meeting_node:
-            #Search the node in its adjacency list
-            p = bisect.bisect_left(g[node], meeting_node)
-            #If it exists (A->B)
-            if g[node][p-1] == meeting_node:
-                #Add (B->A) to the possible links
-                links.append((meeting_node, node))
-    return links
-
 def breadth_first_search_with_cartesian_product(g, begin_a, begin_b):
     de = deque()
     visited = {}
