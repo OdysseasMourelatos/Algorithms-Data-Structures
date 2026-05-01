@@ -3,19 +3,16 @@ from collections import deque
 import bisect
 
 def main():
-    
-    directed, filename = parse_arguments()
-    
-    g, begin_a, begin_b, nodes, links = get_graph(filename, directed)
-    
-    perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed)
+    directed, filename = parse_arguments() #Get the file and whether the graph is directed or not
+    g, begin_a, begin_b, nodes, links = get_graph(filename, directed) #Transform the data from the file into a graph
+    perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed) #After getting the graph, we start checking for meetings
 
 def parse_arguments():
     arguments = sys.argv
-    if len(arguments) == 2:
+    if len(arguments) == 2: #Not Directed
         directed = False
         filename = sys.argv[1]
-    elif len(arguments) == 3 and arguments[1] == "-d":
+    elif len(arguments) == 3 and arguments[1] == "-d": #Directed
         directed = True
         filename = sys.argv[2]
     return directed, filename
@@ -23,7 +20,7 @@ def parse_arguments():
 def get_graph(filename, directed):
     g = {}
     f = open(filename)
-    graph_input = list(f)
+    graph_input = list(f) #Put the contents into a list so that i know which line is the last
     f.close()
     
     i=0
@@ -32,27 +29,28 @@ def get_graph(filename, directed):
         nodes = [int(x) for x in line.split()]
         if len(nodes) != 2:
             continue
-            
-        if i == 1:
+
+        if i == 1: #It's the first line, sould be treated differently
             total_nodes = nodes[0]
             total_links = nodes[1]
             continue
-        elif i == len(graph_input): 
+        elif i == len(graph_input): #It's the last line, sould also be treated differently
             begin_a = nodes[0]
             begin_b = nodes[1]
             break
-        
+        #Ιnitialization
         if nodes[0] not in g:
             g[nodes[0]] = []
         if nodes[1] not in g:
             g[nodes[1]] = []
-        bisect.insort(g[nodes[0]], nodes[1])
-        if not directed:
+        bisect.insort(g[nodes[0]], nodes[1]) #Αdd the link (A->B)
+        if not directed: #Then we add the other link too (B->A)
             bisect.insort(g[nodes[1]], nodes[0])
-                
+            
     return g, begin_a, begin_b, total_nodes, total_links
 
-def perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed): 
+def perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed):
+    #Case 1 - Breadth-first search with parity and checking whether we find a meeting without any adjustments
     visited_a, distance_a, prev_a, visited_b, distance_b, prev_b = perform_breadth_first_search_with_parity(g, begin_a, begin_b)
     min_steps, meeting_node, parity = find_meeting_nodes(g, visited_a, visited_b, distance_a, distance_b)
     
@@ -67,6 +65,44 @@ def perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed):
         
         failed, circles_2_links, circles_3_links = [], [], []
         perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, circles_2_links, circles_3_links, failed)
+
+def perform_breadth_first_search_with_parity(g, begin_a, begin_b):
+    visited_a, distance_a, prev_a = breadth_first_search_with_parity(g, begin_a) #Search for A
+    visited_b, distance_b, prev_b = breadth_first_search_with_parity(g, begin_b) #Search for B
+    return visited_a, distance_a, prev_a, visited_b, distance_b, prev_b
+
+def breadth_first_search_with_parity(g, node):
+    de = deque()
+    visited, inqueue, distance, prev = [], [], [], []
+    for i in range(len(g)): #Initialization
+        visited.append([False, False]) #2D arrays (Aij), i is the node, j the parity
+        inqueue.append([False, False])
+        distance.append([-1,-1])
+        prev.append([-1, -1])
+    
+    de.append([node,0]) #Starting with the first node and parity 0
+    inqueue[node][0]=True
+    distance[node][0] = 0
+    
+    while not len(de) == 0:
+        c = de.popleft()
+        visited_node = c[0]
+        parity = c[1]
+        inqueue[visited_node][parity]=False
+        visited[visited_node][parity]=True
+        
+        for u in AdjacencyList(g,visited_node):
+            #The parity changes, if it was 0 it's now 1 and if it was 1 it's now 0
+            if not visited[u][1-parity] and not inqueue[u][1-parity]: 
+                de.append([u, 1-parity])
+                distance[u][1-parity]=distance[visited_node][parity]+1 #We keep the distance from starting node
+                prev[u][1-parity] = visited_node #We keep the node which we last visited so that we can track the path
+                inqueue[u][1-parity] = True
+                
+    return visited, distance, prev
+
+def AdjacencyList(g,c):
+    return g.get(c)
         
 def perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, circles_2_links, circles_3_links, failed, og_node = None):
     #2-step circles
@@ -185,46 +221,6 @@ def run_search(g, begin_a, begin_b, data, link, failed, link_2 = None):
         data[0], data[1], data[2], data[3] = min_length, path, l, l_2
     return data
     
-def perform_breadth_first_search_with_parity(g, begin_a, begin_b):
-    visited_a, distance_a, prev_a = breadth_first_search_with_parity(g, begin_a)
-    visited_b, distance_b, prev_b = breadth_first_search_with_parity(g, begin_b)
-    return visited_a, distance_a, prev_a, visited_b, distance_b, prev_b
-
-def breadth_first_search_with_parity(g, node):
-    de = deque()
-    visited = []
-    inqueue = []
-    distance = []
-    prev = []
-    for i in range(len(g)):
-        visited.append([False, False])
-        inqueue.append([False, False])
-        distance.append([-1,-1])
-        prev.append([-1, -1])
-    
-    de.append([node,0])
-    inqueue[node][0]=True
-    distance[node][0] = 0
-    
-    while not len(de) == 0:
-        c = de.popleft()
-        visited_node = c[0]
-        parity = c[1]%2
-        inqueue[visited_node][parity]=False
-        visited[visited_node][parity]=True
-        
-        for u in AdjacencyList(g,visited_node):
-            if not visited[u][1-parity] and not inqueue[u][1-parity]:
-                de.append([u, 1-parity])
-                distance[u][1-parity]=distance[visited_node][parity]+1
-                prev[u][1-parity] = visited_node
-                inqueue[u][1-parity] = True
-                
-    return visited, distance, prev
-
-def AdjacencyList(g,c):
-    return g.get(c)
-
 def find_meeting_nodes(g, visited_a, visited_b, distance_a, distance_b):
     min_steps=-1
     meeting_node=(-1,-1)
