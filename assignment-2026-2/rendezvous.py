@@ -14,11 +14,9 @@ def main():
 def parse_arguments():
     arguments = sys.argv
     if len(arguments) == 2: #Not Directed
-        directed = False
-        filename = sys.argv[1]
+        directed, filename = False, sys.argv[1]
     elif len(arguments) == 3 and arguments[1] == "-d": #Directed
-        directed = True
-        filename = sys.argv[2]
+        directed, filename = True, sys.argv[2] 
     return directed, filename
     
 def get_graph(filename, directed):
@@ -35,12 +33,10 @@ def get_graph(filename, directed):
             continue
 
         if i == 1: #It's the first line, sould be treated differently
-            total_nodes = nodes[0]
-            total_links = nodes[1]
+            total_nodes, total_links = nodes[0], nodes[1]
             continue
         elif i == len(graph_input): #It's the last line, sould also be treated differently
-            begin_a = nodes[0]
-            begin_b = nodes[1]
+            begin_a, begin_b = nodes[0], nodes[1]
             break
         #Ιnitialization
         if nodes[0] not in g:
