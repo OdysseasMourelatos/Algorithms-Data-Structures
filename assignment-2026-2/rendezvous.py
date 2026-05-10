@@ -59,12 +59,12 @@ def get_graph(filename, directed):
 
 def perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed):
     #Case 1 - Breadth-first search with parity and checking whether we find a meeting without any adjustments
-    visited_a, distance_a, prev_a, visited_b, distance_b, prev_b = perform_breadth_first_search_with_parity(g, begin_a, begin_b)
+    visited_a, distance_a, pred_a, visited_b, distance_b, pred_b = perform_breadth_first_search_with_parity(g, begin_a, begin_b)
     min_steps, meeting_node, parity = find_meeting_node(g, visited_a, visited_b, distance_a, distance_b)
     
     #If the two distances match, it's either undirected or directed with matching distances - so no problem with the indexes
     if (not directed or (directed and meeting_node!=-1 and distance_a[meeting_node][min_steps%2] == distance_b[meeting_node][min_steps%2])):
-        updated_links = output_check(g, begin_a, begin_b, prev_a, prev_b, meeting_node, min_steps, parity, distance_a, links, directed)
+        updated_links = output_check(g, begin_a, begin_b, pred_a, pred_b, meeting_node, min_steps, parity, distance_a, links, directed)
         #If there is an update on the graph, it means we failed to find a meeting node and hence adjusted the graph
         if updated_links != links:
             #Recursion, the process repeated again with the updated graph
@@ -76,18 +76,18 @@ def perform_initial_meeting_check(g, begin_a, begin_b, nodes, links, directed):
         perform_advanced_meeting_check_for_directed_graphs(g, begin_a, begin_b, meeting_node, circles_2_links, circles_3_links, failed) 
 
 def perform_breadth_first_search_with_parity(g, begin_a, begin_b):
-    visited_a, distance_a, prev_a = breadth_first_search_with_parity(g, begin_a) #Search for A
-    visited_b, distance_b, prev_b = breadth_first_search_with_parity(g, begin_b) #Search for B
-    return visited_a, distance_a, prev_a, visited_b, distance_b, prev_b
+    visited_a, distance_a, pred_a = breadth_first_search_with_parity(g, begin_a) #Search for A
+    visited_b, distance_b, pred_b = breadth_first_search_with_parity(g, begin_b) #Search for B
+    return visited_a, distance_a, pred_a, visited_b, distance_b, pred_b
 
 def breadth_first_search_with_parity(g, node):
     de = deque()
-    visited, inqueue, distance, prev = [], [], [], []
+    visited, inqueue, distance, pred = [], [], [], []
     for i in range(len(g)): #Initialization
         visited.append([False, False]) #2D arrays (Aij), i is the node, j the parity
         inqueue.append([False, False])
         distance.append([-1,-1])
-        prev.append([-1, -1])
+        pred.append([-1, -1])
         
     #Starting with the first node and parity 0
     de.append([node,0]) 
@@ -106,10 +106,10 @@ def breadth_first_search_with_parity(g, node):
             if not visited[u][1-parity] and not inqueue[u][1-parity]: 
                 de.append([u, 1-parity])
                 distance[u][1-parity]=distance[visited_node][parity]+1 #We keep the distance from starting node
-                prev[u][1-parity] = visited_node #We keep the node which we last visited so that we can track the path
+                pred[u][1-parity] = visited_node #We keep the node which we last visited so that we can track the path
                 inqueue[u][1-parity] = True
                 
-    return visited, distance, prev
+    return visited, distance, pred
 
 def AdjacencyList(g,c):
     return g.get(c)
@@ -140,20 +140,20 @@ def check_min_steps(distance_a, distance_b, node, parity, current_data):
         current_data[1] = (node, parity)
 
 #One of my favorite functions - tracking back the path node by node
-def get_path(meeting_node, begin_node, prev, parity):
-    prev_node = meeting_node
+def get_path(meeting_node, begin_node, pred, parity):
+    pred_node = meeting_node
     path = [meeting_node]
-    while prev_node!=begin_node:
-        prev_node = prev[prev_node][parity] #Get the previous node
+    while pred_node!=begin_node:
+        pred_node = pred[pred_node][parity] #Get the previous node
         parity = 1 - parity #Change parity accordingly
-        path.insert(0, prev_node) #Insert at the beginning
+        path.insert(0, pred_node) #Insert at the beginning
     return path
 
-def output_check(g, begin_a, begin_b, prev_a, prev_b, meeting_node, min_steps, parity, distance_a, links, directed):
+def output_check(g, begin_a, begin_b, pred_a, pred_b, meeting_node, min_steps, parity, distance_a, links, directed):
     if meeting_node!=-1:
         #There is a meeting node without any adjustments - SUCCESS
-        path_a = get_path(meeting_node, begin_a, prev_a, parity)
-        path_b = get_path(meeting_node, begin_b, prev_b, parity)   
+        path_a = get_path(meeting_node, begin_a, pred_a, parity)
+        path_b = get_path(meeting_node, begin_b, pred_b, parity)   
         print_successful_results(min_steps, path_a, path_b)
     else:
         if not directed:
@@ -173,7 +173,7 @@ def output_check(g, begin_a, begin_b, prev_a, prev_b, meeting_node, min_steps, p
                     neighbors_adjustment(g, begin_a, begin_b)
                 #Not Neighbors
                 else:
-                    non_neighbors_adjustment(g, begin_b, begin_a, prev_a, min_distance)
+                    non_neighbors_adjustment(g, begin_b, begin_a, pred_a, min_distance)
                 links+=1
     return links
 
@@ -196,11 +196,11 @@ def neighbors_adjustment(g, begin_a, begin_b):
                     
     adjust_undirected_graph(g, node_for_connection, new_neighbor)
 
-def non_neighbors_adjustment(g, begin_b, begin_a, prev_a, min_distance):
-    path = get_path(begin_b, begin_a, prev_a, min_distance%2)
+def non_neighbors_adjustment(g, begin_b, begin_a, pred_a, min_distance):
+    path = get_path(begin_b, begin_a, pred_a, min_distance%2)
     middle_node = path[int(len(path)/2)]
-    prev_by_two = path[middle_node - 2]
-    adjust_undirected_graph(g, prev_by_two, middle_node)  
+    pred_by_two = path[middle_node - 2]
+    adjust_undirected_graph(g, pred_by_two, middle_node)  
 
 def adjust_undirected_graph(g, node_A, node_B):
     bisect.insort(g[node_A], node_B)
@@ -332,10 +332,10 @@ def run_search(g, begin_a, begin_b, data, link, failed, link_2 = None):
         min_length, path, l = data[0], data[1], data[2]
     else: #Combination of 2-step circles & 3-step ones
         min_length, path, l, l_2 = data[0], data[1], data[2], data[3]
-    prev, new_meeting = breadth_first_search_with_cartesian_product(g, begin_a, begin_b) #New search
+    pred, new_meeting = breadth_first_search_with_cartesian_product(g, begin_a, begin_b) #New search
     
     if new_meeting != (-1,-1): #MEETING FOUND!!!
-        new_path = track_new_path(prev, new_meeting)
+        new_path = track_new_path(pred, new_meeting)
         #New meeting is the first we find, or it requires less steps
         if min_length == -1 or (min_length !=-1 and len(new_path) < min_length): 
             min_length = len(new_path)
@@ -360,10 +360,10 @@ def run_search(g, begin_a, begin_b, data, link, failed, link_2 = None):
 #New version of breadth-first search
 def breadth_first_search_with_cartesian_product(g, begin_a, begin_b):
     de = deque()
-    visited, inqueue, prev = {}, {}, {} #Use dictionaries because we do not know which nodes we will have
+    visited, inqueue, pred = {}, {}, {} #Use dictionaries because we do not know which nodes we will have
 
     de.append((begin_a, begin_b))
-    visited[(begin_a, begin_b)], inqueue[(begin_a, begin_b)], prev[(begin_a, begin_b)] = False, True, -1
+    visited[(begin_a, begin_b)], inqueue[(begin_a, begin_b)], pred[(begin_a, begin_b)] = False, True, -1
     found, meeting = False, (-1,-1)
     
     while not found and not len(de) == 0:
@@ -383,16 +383,16 @@ def breadth_first_search_with_cartesian_product(g, begin_a, begin_b):
                     de.append((node_a, node_b))
                     inqueue[(node_a, node_b)] = True
                     #Keep the node which we came from, same logic used in breadth-first search with parity
-                    prev[(node_a, node_b)] = (a, b)
+                    pred[(node_a, node_b)] = (a, b)
                     
-    return prev, meeting
+    return pred, meeting
 
-def track_new_path(prev, new_meeting):
+def track_new_path(pred, new_meeting):
     c = new_meeting
     path = [c]
     #Track new path backwards, same logic used before with directed graphs
-    while prev.get((c)) != -1: 
-        c = prev.get((c))
+    while pred.get((c)) != -1: 
+        c = pred.get((c))
         path.insert(0, c)
     return path
 
