@@ -17,14 +17,18 @@ def parse_arguments():
         directed, filename = False, sys.argv[1]
     elif len(arguments) == 3 and arguments[1] == "-d": #Directed
         directed, filename = True, sys.argv[2] 
+    else:
+        sys.exit("Invalid arguments, Valid -> python rendezvous.py [-d] <graph_file>")
     return directed, filename
     
 def get_graph(filename, directed):
     g = {}
-    f = open(filename)
-    graph_input = list(f) #Put the contents into a list so that i know which line is the last
-    f.close()
-    
+    try:
+        f = open(filename)
+        graph_input = list(f) #Put the contents into a list so that i know which line is the last
+        f.close()
+    except IOError:
+        sys.exit("Could not read file " + filename)
     i=0
     for line in graph_input:
         i+=1
