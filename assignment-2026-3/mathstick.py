@@ -10,7 +10,7 @@ def main():
     
     standard_digits = create_digits_table()
     d1, d2, d3 = get_computer_digits(digit1, digit2, digit3, standard_digits)
-    transformation_table = get_transformation_table(standard_digits)
+    transformation_table = get_transformation_table(standard_digits, mk)
     
     print(d1, d2, d3)
     for digit in transformation_table[1]:
@@ -58,7 +58,7 @@ def get_computer_digits(digit1, digit2, digit3, standard_digits):
     d1, d2, d3 = standard_digits[digit1], standard_digits[digit2], standard_digits[digit3]
     return d1, d2, d3
 
-def get_transformation_table(digits):
+def get_transformation_table(digits, mk):
     transformation_table=[]
     #For every digit (0,1, .., 9)
     for digit1 in digits:
@@ -69,7 +69,7 @@ def get_transformation_table(digits):
             removed = digit1 - digit2
             (a, r) = len(added), len(removed)
             d = a - r
-            if a > 2 or r > 2:
+            if a > mk or r > mk:
                 continue
             digit_table.append([digit2, added, removed, (a,r), d])
         transformation_table.append(digit_table)
