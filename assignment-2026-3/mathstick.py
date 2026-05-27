@@ -1,12 +1,18 @@
 import sys, argparse, json, re
 
 def main():
+    #Parsing the arguments
     args = parse_arguments()
-    problem = args.problem
-    mk = args.max_k
+    problem, mk = args.problem, args.max_k
+    
+    #Checking the validity of the problem and getting the digits & the operator
     digit1, digit2, digit3, operator = check_valid_problem(problem)
+    
     standard_digits = create_digits_table()
+    d1, d2, d3 = get_computer_digits(digit1, digit2, digit3, standard_digits)
     transformation_table = get_transformation_table(standard_digits)
+    
+    print(d1, d2, d3)
     for digit in transformation_table[1]:
         print(digit)
 
@@ -47,6 +53,10 @@ def create_digits_table():
         {0,1,2,3,4,6} #9
     ]
     return digits     
+
+def get_computer_digits(digit1, digit2, digit3, standard_digits):
+    d1, d2, d3 = standard_digits[digit1], standard_digits[digit2], standard_digits[digit3]
+    return d1, d2, d3
 
 def get_transformation_table(digits):
     transformation_table=[]
