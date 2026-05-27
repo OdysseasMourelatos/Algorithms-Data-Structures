@@ -2,7 +2,7 @@ import sys, argparse, json, re
 
 def main():
     digits = create_digits_table()
-    get_transformation_table(digits)
+    transformation_table = get_transformation_table(digits)
     
 def create_digits_table():
     digits = [
@@ -21,16 +21,18 @@ def create_digits_table():
 
 def get_transformation_table(digits):
     transformation_table=[]
+    #For every digit (0,1, .., 9)
     for digit1 in digits:
-        temp = []
+        digit_table = []
+        #What it requires to be transformed into every digit
         for digit2 in digits:
             added = digit2 - digit1
             removed = digit1 - digit2
             (a, r) = len(added), len(removed)
             d = a - r
-            temp.append([added, removed, (a,r), d])
-        transformation_table.append(temp)
-    print(transformation_table[0][2])
-    
+            digit_table.append([added, removed, (a,r), d])
+        transformation_table.append(digit_table)
+    return transformation_table
+
 if __name__ == "__main__":
     main()
