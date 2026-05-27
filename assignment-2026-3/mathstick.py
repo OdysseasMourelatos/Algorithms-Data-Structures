@@ -2,6 +2,10 @@ import sys, argparse, json, re
 
 def main():
     digits = create_digits_dictionary()
+    print(digits.get(0))
+    print(digits.get(2))
+    print(digits.get(0) - digits.get(2))
+    print(digits.get(2) - digits.get(0))
     
 def create_digits_dictionary():
     digits = {
