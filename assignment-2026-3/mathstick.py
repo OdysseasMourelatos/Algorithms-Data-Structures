@@ -3,20 +3,36 @@ import sys, argparse, json, re
 def main():
     args = parse_arguments()
     problem = args.problem
-    if problem is None:
-        sys.exit(argparse.ArgumentParser().print_help())
     mk = args.max_k
-    digits = create_digits_table()
-    transformation_table = get_transformation_table(digits)
+    digit1, digit2, digit3, operator = check_valid_problem(problem)
+    standard_digits = create_digits_table()
+    transformation_table = get_transformation_table(standard_digits)
     for digit in transformation_table[1]:
         print(digit)
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--problem", help = "PROBLEM")
+    parser.add_argument("--problem", help = "PROBLEM", required=True)
     parser.add_argument("--max-k", default = 2, help = "MAX_K")
     return parser.parse_args()
      
+def check_valid_problem(problem):
+    x = re.split(" ", problem)
+    digits = x[0], x[2], x[4]
+    operator = x[1]
+    equal_sign = x[3]
+    if len(x) != 5:
+        sys.exit("Invalid problem format")
+    elif operator != "+" and operator != "-":
+        sys.exit("Invalid operator: " + operator)
+    elif equal_sign != "=":
+        sys.exit("Problem must contain an equal sign")
+    else:
+        for digit in digits:
+            if not digit.isdigit():
+                sys.exit("Invalid digit: " + digit)
+    return int(digits[0]), int(digits[1]), int(digits[2]), operator
+
 def create_digits_table():
     digits = [
         {1,2,3,4,5,6}, #0
