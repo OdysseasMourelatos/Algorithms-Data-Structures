@@ -3,7 +3,9 @@ import sys, argparse, json, re
 def main():
     digits = create_digits_table()
     transformation_table = get_transformation_table(digits)
-    
+    for digit in transformation_table[1]:
+        print(digit)
+        
 def create_digits_table():
     digits = [
         {1,2,3,4,5,6}, #0
@@ -30,7 +32,9 @@ def get_transformation_table(digits):
             removed = digit1 - digit2
             (a, r) = len(added), len(removed)
             d = a - r
-            digit_table.append([added, removed, (a,r), d])
+            if a > 2 or r > 2:
+                continue
+            digit_table.append([digit2, added, removed, (a,r), d])
         transformation_table.append(digit_table)
     return transformation_table
 
