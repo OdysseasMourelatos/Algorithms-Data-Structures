@@ -1,11 +1,22 @@
 import sys, argparse, json, re
 
 def main():
+    args = parse_arguments()
+    problem = args.problem
+    if problem is None:
+        sys.exit(argparse.ArgumentParser().print_help())
+    mk = args.max_k
     digits = create_digits_table()
     transformation_table = get_transformation_table(digits)
     for digit in transformation_table[1]:
         print(digit)
-        
+
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--problem", help = "PROBLEM")
+    parser.add_argument("--max-k", default = 2, help = "MAX_K")
+    return parser.parse_args()
+     
 def create_digits_table():
     digits = [
         {1,2,3,4,5,6}, #0
