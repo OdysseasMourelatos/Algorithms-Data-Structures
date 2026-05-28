@@ -6,17 +6,17 @@ def main():
     problem, mk = args.problem, args.max_k
     
     #Checking the validity of the problem and getting the digits & the operator
+    global digit1, digit2, digit3, operator
     digit1, digit2, digit3, operator = check_valid_problem(problem)
     
     standard_digits = create_digits_table()
     d1, d2, d3 = get_computer_digits(digit1, digit2, digit3, standard_digits)
     transformation_table = get_transformation_table(standard_digits, mk)
     
-    o_a, o_r = 0, 0
-    data = (o_a, o_r, operator)
-    
     #Will change the operator once I have found all the solutions with the initial operator
-    data = change_operator(data)
+    print(o_a, o_r, operator)
+    change_operator()
+    print(o_a, o_r, operator)
     o_d = o_r - o_a
     
     print(d1, d2, d3)
@@ -82,14 +82,14 @@ def get_transformation_table(digits, mk):
         transformation_table.append(digit_table)
     return transformation_table
 
-def change_operator(data):
-    o_a, o_r, operator = data
+o_a, o_r = 0, 0
+
+def change_operator():
+    global operator, o_a, o_r
     if operator == "+":
         o_r, operator = 1, "-"
     else:
-            o_a, operator = 1, "+"
-    data = o_a, o_r, operator
-    return data
+        o_a, operator = 1, "+"
 
 def do_slot(i, ns):
     if i == ns:
