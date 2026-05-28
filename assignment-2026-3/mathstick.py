@@ -37,7 +37,8 @@ def main():
     o_d = o_r - o_a
     
     #Run again with the new operator
-    #do_slot(0, num_slots)
+    do_slot(0, num_slots)
+    print(solutions)
     
 
 def parse_arguments():
@@ -115,7 +116,6 @@ solutions = []
 
 def do_slot(i, ns):
     global proposed_solution, solutions
-    print(proposed_solution)
     if i == ns:
         if check_solution(proposed_solution):
             solutions.append(proposed_solution.copy())
@@ -123,17 +123,19 @@ def do_slot(i, ns):
         return
     
     for t_d in current_slot(i):
-        print("Trying to put " + str(t_d) + " in slot " + str(i))
         if not impossible_to_find_solution(t_d, i):
             proposed_solution[i] = t_d
             do_slot(i+1, ns)
             update_total_additions_and_removals(transformation_table[digits[i]].get(t_d)[3][0], transformation_table[digits[i]].get(t_d)[3][1], add = False)
 
 def check_solution(solution):
-    if operator == "+":
-        return solution[0] + solution[1] == solution[2]
-    else:
-        return solution[0] - solution[1] == solution[2]
+    global t_a, t_r, o_a, o_r
+    if t_a + o_a == t_r + o_r:
+        if operator == "+":
+            return solution[0] + solution[1] == solution[2]
+        else:
+            return solution[0] - solution[1] == solution[2]
+    return False
 
 def current_slot(i):
     digit = digits[i]
@@ -142,11 +144,8 @@ def current_slot(i):
 
 def impossible_to_find_solution(t_d, i):
     global t_a, t_r, m_k
-    print(digits[i])
     data = transformation_table[digits[i]].get(t_d)
     update_total_additions_and_removals(data[3][0], data[3][1], add = True)
-    if t_d == 9 and i == 2 and proposed_solution[0] == 8:
-        print(t_a, t_r)
     if t_a + o_a > m_k or t_r + o_r > m_k:
         update_total_additions_and_removals(data[3][0], data[3][1], add = False)
         return True
