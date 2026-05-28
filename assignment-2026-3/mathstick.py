@@ -12,6 +12,13 @@ def main():
     d1, d2, d3 = get_computer_digits(digit1, digit2, digit3, standard_digits)
     transformation_table = get_transformation_table(standard_digits, mk)
     
+    o_a, o_r = 0, 0
+    data = (o_a, o_r, operator)
+    
+    #Will change the operator once I have found all the solutions with the initial operator
+    data = change_operator(data)
+    o_d = o_r - o_a
+    
     print(d1, d2, d3)
     for digit in transformation_table[1]:
         print(digit)
@@ -74,6 +81,15 @@ def get_transformation_table(digits, mk):
             digit_table.append([digit2, added, removed, (a,r), d])
         transformation_table.append(digit_table)
     return transformation_table
+
+def change_operator(data):
+    o_a, o_r, operator = data
+    if operator == "+":
+        o_r, operator = 1, "-"
+    else:
+            o_a, operator = 1, "+"
+    data = o_a, o_r, operator
+    return data
 
 def do_slot(i, ns):
     if i == ns:
