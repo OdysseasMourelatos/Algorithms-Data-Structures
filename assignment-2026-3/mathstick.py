@@ -32,6 +32,8 @@ def main():
     change_operator()
     o_d = o_r - o_a
     
+    #Run again with the new operator
+    do_slot(0, num_slots)
     
 
 def parse_arguments():
@@ -112,7 +114,9 @@ def do_slot(i, ns):
     if i == ns:
         if check_solution():
             print("Solution found")
+            solution[i-1] = -1
             return
+    
     for td in current_slot(i):
         if not impossible_to_find_solution(td, i):
             solution[i] = td
