@@ -3,7 +3,8 @@ import sys, argparse, json, re
 def main():
     #Parsing the arguments
     args = parse_arguments()
-    problem, mk = args.problem, args.max_k
+    global m_k
+    problem, m_k = args.problem, args.max_k
     
     #Checking the validity of the problem and getting the numbers & the operator
     global operator
@@ -23,9 +24,11 @@ def main():
     #Will make it work for numbers greater than 10 soon, for now it only works for single digit numbers
     global transformation_table
     computer_digits = get_computer_digits(digits[0], digits[1], digits[2], standard_digits)
-    transformation_table = get_transformation_table(standard_digits, mk)
+    transformation_table = get_transformation_table(standard_digits, m_k)
 
     #Begin the recurssion
+    global t_a, t_r
+    t_a, t_r = 0, 0
     do_slot(0, num_slots)
     
     #Will change the operator once I have found all the solutions with the initial operator
@@ -33,7 +36,7 @@ def main():
     o_d = o_r - o_a
     
     #Run again with the new operator
-    do_slot(0, num_slots)
+    #do_slot(0, num_slots)
     
 
 def parse_arguments():
@@ -78,7 +81,7 @@ def get_computer_digits(digit1, digit2, digit3, standard_digits):
     d1, d2, d3 = standard_digits[digit1], standard_digits[digit2], standard_digits[digit3]
     return d1, d2, d3
 
-def get_transformation_table(digits, mk):
+def get_transformation_table(digits, m_k):
     transformation_table=[]
     #For every digit (0,1, .., 9)
     for digit1 in digits:
@@ -91,7 +94,7 @@ def get_transformation_table(digits, mk):
             removed = digit1 - digit2
             (a, r) = len(added), len(removed)
             d = a - r
-            if a > mk or r > mk:
+            if a > m_k or r > m_k:
                 continue
             digit_dictionary[j-1] = [digit2, added, removed, (a,r), d]
         transformation_table.append(digit_dictionary)
@@ -131,7 +134,14 @@ def current_slot(i):
     return tds
 
 def impossible_to_find_solution(td, i):
-    print("Checking if impossible to find solution")
+    global t_a, t_r, m_k
+    data = transformation_table[digits[i]].get(td)
+    print(t_a, t_r, data[3][0], data[3][1])
+    t_a += data[3][0]
+    t_r += data[3][1]
+    if t_a + o_a > m_k or t_r + o_r > m_k:
+        t_a -= data[3][0]
+        t_r -= data[3][1]
 
 if __name__ == "__main__":
     main()
