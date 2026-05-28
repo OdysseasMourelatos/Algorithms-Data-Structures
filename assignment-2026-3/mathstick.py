@@ -5,12 +5,22 @@ def main():
     args = parse_arguments()
     problem, mk = args.problem, args.max_k
     
-    #Checking the validity of the problem and getting the digits & the operator
-    global digit1, digit2, digit3, operator
-    digit1, digit2, digit3, operator = check_valid_problem(problem)
+    #Checking the validity of the problem and getting the numbers & the operator
+    global operator
+    numbers, operator = check_valid_problem(problem)
+    
+    #Find number of slots and check if it is greater than 6
+    num_slots = 0
+    for number in numbers:
+        num_slots += len(number)
+    if num_slots > 6:
+        sys.exit("Too many digits: " + str(num_slots) + ". Maximum is 6.")
+    no_1, no_2, no_3 = int(numbers[0]), int(numbers[1]), int(numbers[2])
     
     standard_digits = create_digits_table()
-    d1, d2, d3 = get_computer_digits(digit1, digit2, digit3, standard_digits)
+    #Will make it work for numbers greater than 10 soon, for now it only works for single digit numbers
+    global digits
+    digits = get_computer_digits(no_1, no_2, no_3, standard_digits)
     transformation_table = get_transformation_table(standard_digits, mk)
     
     #Will change the operator once I have found all the solutions with the initial operator
@@ -19,7 +29,6 @@ def main():
     print(o_a, o_r, operator)
     o_d = o_r - o_a
     
-    print(d1, d2, d3)
     for digit in transformation_table[1]:
         print(digit)
 
@@ -31,7 +40,7 @@ def parse_arguments():
      
 def check_valid_problem(problem):
     x = re.split(" ", problem)
-    digits = x[0], x[2], x[4]
+    numbers = x[0], x[2], x[4]
     operator = x[1]
     equal_sign = x[3]
     if len(x) != 5:
@@ -41,10 +50,10 @@ def check_valid_problem(problem):
     elif equal_sign != "=":
         sys.exit("Problem must contain an equal sign")
     else:
-        for digit in digits:
-            if not digit.isdigit():
-                sys.exit("Invalid digit: " + digit)
-    return int(digits[0]), int(digits[1]), int(digits[2]), operator
+        for number in numbers:
+            if not number.isdigit():
+                sys.exit("Invalid number: " + number)
+    return numbers, operator
 
 def create_digits_table():
     digits = [
