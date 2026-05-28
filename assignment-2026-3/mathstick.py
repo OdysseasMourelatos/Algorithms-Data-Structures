@@ -124,6 +124,7 @@ def do_slot(i, ns):
         if not impossible_to_find_solution(td, i):
             solution[i] = td
             do_slot(i+1, ns)
+            update_total_additions_and_removals(transformation_table[digits[i]].get(td)[3][0], transformation_table[digits[i]].get(td)[3][1], add = False)
 
 def check_solution():
     return True
@@ -137,11 +138,21 @@ def impossible_to_find_solution(td, i):
     global t_a, t_r, m_k
     data = transformation_table[digits[i]].get(td)
     print(t_a, t_r, data[3][0], data[3][1])
-    t_a += data[3][0]
-    t_r += data[3][1]
+    update_total_additions_and_removals(data[3][0], data[3][1], add = True)
     if t_a + o_a > m_k or t_r + o_r > m_k:
-        t_a -= data[3][0]
-        t_r -= data[3][1]
+        print("Impossible to find solution with td: " + str(td) + " at slot: " + str(i))
+        print("t_a: " + str(t_a) + ", t_r: " + str(t_r))
+        update_total_additions_and_removals(data[3][0], data[3][1], add = False)
+        return True
+
+def update_total_additions_and_removals(new_a, new_r, add):
+    global t_a, t_r
+    if add:
+        t_a += new_a
+        t_r += new_r
+    else:
+        t_a -= new_a
+        t_r -= new_r
 
 if __name__ == "__main__":
     main()
