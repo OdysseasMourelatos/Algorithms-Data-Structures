@@ -16,7 +16,8 @@ def main():
         num_slots += len(number)
     if num_slots > 6:
         sys.exit("Too many digits: " + str(num_slots) + ". Maximum is 6.")
-        
+    
+    
     global digits
     digits = [int(numbers[0]), int(numbers[1]), int(numbers[2])]
     
@@ -25,7 +26,7 @@ def main():
     global transformation_table
     computer_digits = get_computer_digits(digits[0], digits[1], digits[2], standard_digits)
     transformation_table = get_transformation_table(standard_digits, m_k)
-
+    sort_by_cost(digits)
     #Begin the recurssion
     global t_a, t_r, solutions
     t_a, t_r = 0, 0
@@ -40,7 +41,6 @@ def main():
     do_slot(0, num_slots)
     print(solutions)
     
-
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--problem", help = "PROBLEM", required=True)
@@ -102,6 +102,14 @@ def get_transformation_table(digits, m_k):
         transformation_table.append(digit_dictionary)
     return transformation_table
 
+def sort_by_cost(digits):
+    global transformation_table
+    for digit in digits:
+        if digit == 9:
+            print(transformation_table[digit])
+        transformation_table[digit] = dict(sorted(transformation_table[digit].items(), key=lambda item: item[1][3]))
+        if digit == 9:
+            print(transformation_table[digit])
 o_a, o_r = 0, 0
 
 def change_operator():
@@ -113,11 +121,15 @@ def change_operator():
 
 proposed_solution = [-1, -1, -1]
 solutions = []
+nodes_visited = 0
 
 def do_slot(i, ns):
-    global proposed_solution, solutions
+    global proposed_solution, solutions, nodes_visited
+    nodes_visited += 1
     if i == ns:
         if check_solution(proposed_solution):
+            print(nodes_visited)
+            print(proposed_solution)
             solutions.append(proposed_solution.copy())
             proposed_solution[i-1] = -1
         return
