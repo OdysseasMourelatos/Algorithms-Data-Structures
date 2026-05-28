@@ -27,9 +27,10 @@ def main():
     transformation_table = get_transformation_table(standard_digits, m_k)
 
     #Begin the recurssion
-    global t_a, t_r
+    global t_a, t_r, solutions
     t_a, t_r = 0, 0
     do_slot(0, num_slots)
+    print(solutions)
     
     #Will change the operator once I have found all the solutions with the initial operator
     change_operator()
@@ -109,26 +110,30 @@ def change_operator():
     else:
         o_a, operator = 1, "+"
 
-solution = [-1, -1, -1]
+proposed_solution = [-1, -1, -1]
+solutions = []
 
 def do_slot(i, ns):
-    global solution
-    print(solution)
+    global proposed_solution, solutions
+    print(proposed_solution)
     if i == ns:
-        if check_solution():
-            print("Solution found")
-            solution[i-1] = -1
-            return
+        if check_solution(proposed_solution):
+            solutions.append(proposed_solution.copy())
+            proposed_solution[i-1] = -1
+        return
     
     for td in current_slot(i):
         if not impossible_to_find_solution(td, i):
-            solution[i] = td
+            proposed_solution[i] = td
             do_slot(i+1, ns)
             update_total_additions_and_removals(transformation_table[digits[i]].get(td)[3][0], transformation_table[digits[i]].get(td)[3][1], add = False)
 
-def check_solution():
-    return True
-    
+def check_solution(solution):
+    if operator == "+":
+        return solution[0] + solution[1] == solution[2]
+    else:
+        return solution[0] - solution[1] == solution[2]
+
 def current_slot(i):
     digit = digits[i]
     tds = transformation_table[digit].keys()
@@ -137,11 +142,8 @@ def current_slot(i):
 def impossible_to_find_solution(td, i):
     global t_a, t_r, m_k
     data = transformation_table[digits[i]].get(td)
-    print(t_a, t_r, data[3][0], data[3][1])
     update_total_additions_and_removals(data[3][0], data[3][1], add = True)
     if t_a + o_a > m_k or t_r + o_r > m_k:
-        print("Impossible to find solution with td: " + str(td) + " at slot: " + str(i))
-        print("t_a: " + str(t_a) + ", t_r: " + str(t_r))
         update_total_additions_and_removals(data[3][0], data[3][1], add = False)
         return True
 
