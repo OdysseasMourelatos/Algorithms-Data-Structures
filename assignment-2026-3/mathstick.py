@@ -75,5 +75,23 @@ def get_transformation_table(digits, mk):
         transformation_table.append(digit_table)
     return transformation_table
 
+def do_slot(i, ns):
+    if i == ns:
+        if check_solution():
+            print("Solution found")
+            return True
+    for td in current_slot():
+        if not impossible_to_find_solution():
+            do_slot(i+1, ns)
+
+def check_solution():
+    print("Checking solution")
+    
+def current_slot():
+    print("Getting current slot")
+
+def impossible_to_find_solution():
+    print("Checking if impossible to find solution")
+
 if __name__ == "__main__":
     main()
