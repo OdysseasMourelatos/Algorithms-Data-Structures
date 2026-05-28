@@ -15,13 +15,18 @@ def main():
         num_slots += len(number)
     if num_slots > 6:
         sys.exit("Too many digits: " + str(num_slots) + ". Maximum is 6.")
-    no_1, no_2, no_3 = int(numbers[0]), int(numbers[1]), int(numbers[2])
+        
+    global digits
+    digits = [int(numbers[0]), int(numbers[1]), int(numbers[2])]
     
     standard_digits = create_digits_table()
     #Will make it work for numbers greater than 10 soon, for now it only works for single digit numbers
-    global digits
-    digits = get_computer_digits(no_1, no_2, no_3, standard_digits)
+    global transformation_table
+    computer_digits = get_computer_digits(digits[0], digits[1], digits[2], standard_digits)
     transformation_table = get_transformation_table(standard_digits, mk)
+
+    #Begin the recurssion
+    do_slot(0, num_slots)
     
     #Will change the operator once I have found all the solutions with the initial operator
     print(o_a, o_r, operator)
@@ -29,8 +34,7 @@ def main():
     print(o_a, o_r, operator)
     o_d = o_r - o_a
     
-    for digit in transformation_table[1]:
-        print(digit)
+    
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -78,17 +82,19 @@ def get_transformation_table(digits, mk):
     transformation_table=[]
     #For every digit (0,1, .., 9)
     for digit1 in digits:
-        digit_table = []
+        digit_dictionary= {}
         #What it requires to be transformed into every digit
+        j = 0
         for digit2 in digits:
+            j+=1
             added = digit2 - digit1
             removed = digit1 - digit2
             (a, r) = len(added), len(removed)
             d = a - r
             if a > mk or r > mk:
                 continue
-            digit_table.append([digit2, added, removed, (a,r), d])
-        transformation_table.append(digit_table)
+            digit_dictionary[j-1] = [digit2, added, removed, (a,r), d]
+        transformation_table.append(digit_dictionary)
     return transformation_table
 
 o_a, o_r = 0, 0
@@ -105,15 +111,17 @@ def do_slot(i, ns):
         if check_solution():
             print("Solution found")
             return True
-    for td in current_slot():
+    for td in current_slot(i):
         if not impossible_to_find_solution():
             do_slot(i+1, ns)
 
 def check_solution():
-    print("Checking solution")
+    print("Checking if solution is correct")
     
-def current_slot():
-    print("Getting current slot")
+def current_slot(i):
+    digit = digits[i]
+    tds = [td[0] for td in transformation_table[digit]]
+    return tds
 
 def impossible_to_find_solution():
     print("Checking if impossible to find solution")
