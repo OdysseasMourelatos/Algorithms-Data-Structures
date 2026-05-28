@@ -122,11 +122,12 @@ def do_slot(i, ns):
             proposed_solution[i-1] = -1
         return
     
-    for td in current_slot(i):
-        if not impossible_to_find_solution(td, i):
-            proposed_solution[i] = td
+    for t_d in current_slot(i):
+        print("Trying to put " + str(t_d) + " in slot " + str(i))
+        if not impossible_to_find_solution(t_d, i):
+            proposed_solution[i] = t_d
             do_slot(i+1, ns)
-            update_total_additions_and_removals(transformation_table[digits[i]].get(td)[3][0], transformation_table[digits[i]].get(td)[3][1], add = False)
+            update_total_additions_and_removals(transformation_table[digits[i]].get(t_d)[3][0], transformation_table[digits[i]].get(t_d)[3][1], add = False)
 
 def check_solution(solution):
     if operator == "+":
@@ -136,16 +137,20 @@ def check_solution(solution):
 
 def current_slot(i):
     digit = digits[i]
-    tds = transformation_table[digit].keys()
-    return tds
+    t_ds = transformation_table[digit].keys()
+    return t_ds
 
-def impossible_to_find_solution(td, i):
+def impossible_to_find_solution(t_d, i):
     global t_a, t_r, m_k
-    data = transformation_table[digits[i]].get(td)
+    print(digits[i])
+    data = transformation_table[digits[i]].get(t_d)
     update_total_additions_and_removals(data[3][0], data[3][1], add = True)
+    if t_d == 9 and i == 2 and proposed_solution[0] == 8:
+        print(t_a, t_r)
     if t_a + o_a > m_k or t_r + o_r > m_k:
         update_total_additions_and_removals(data[3][0], data[3][1], add = False)
         return True
+    return False
 
 def update_total_additions_and_removals(new_a, new_r, add):
     global t_a, t_r
