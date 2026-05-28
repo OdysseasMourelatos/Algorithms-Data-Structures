@@ -29,9 +29,7 @@ def main():
     do_slot(0, num_slots)
     
     #Will change the operator once I have found all the solutions with the initial operator
-    print(o_a, o_r, operator)
     change_operator()
-    print(o_a, o_r, operator)
     o_d = o_r - o_a
     
     
@@ -106,24 +104,29 @@ def change_operator():
     else:
         o_a, operator = 1, "+"
 
+solution = [-1, -1, -1]
+
 def do_slot(i, ns):
+    global solution
+    print(solution)
     if i == ns:
         if check_solution():
             print("Solution found")
-            return True
+            return
     for td in current_slot(i):
-        if not impossible_to_find_solution():
+        if not impossible_to_find_solution(td, i):
+            solution[i] = td
             do_slot(i+1, ns)
 
 def check_solution():
-    print("Checking if solution is correct")
+    return True
     
 def current_slot(i):
     digit = digits[i]
-    tds = [td[0] for td in transformation_table[digit]]
+    tds = transformation_table[digit].keys()
     return tds
 
-def impossible_to_find_solution():
+def impossible_to_find_solution(td, i):
     print("Checking if impossible to find solution")
 
 if __name__ == "__main__":
