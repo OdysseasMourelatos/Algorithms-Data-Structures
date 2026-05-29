@@ -27,20 +27,20 @@ def main():
     transformation_table = get_transformation_table(standard_digits, m_k)
     
     sort_by_cost(digits)
-    global range_d_table
+    global range_d_table, suffix_min_max_table
     range_d_table = get_d_range(digits)
     suffix_min_max_table = get_suffix_min_max_table()
-    print(suffix_min_max_table)
     
     #Begin the recurssion
-    global t_a, t_r, solutions
-    t_a, t_r = 0, 0
+    global t_a, t_r, solutions, o_d
+    t_a, t_r, o_d = 0, 0, 0
     do_slot(0, num_slots)
     print(solutions)
     
     #Will change the operator once I have found all the solutions with the initial operator
     change_operator()
     o_d = o_r - o_a
+    
     
     #Run again with the new operator
     do_slot(0, num_slots)
@@ -139,9 +139,6 @@ def do_slot(i, ns):
     nodes_visited += 1
     if i == ns:
         if check_solution(proposed_solution):
-            print(nodes_visited)
-            print(nodes_pruned)
-            print(proposed_solution)
             solutions.append(proposed_solution.copy())
             proposed_solution[i-1] = -1
         return
@@ -169,8 +166,8 @@ def current_slot(i):
 
 def impossible_to_find_solution(t_d, i, ns):
     impossible = m_k_check(t_d, i)
-    if i < ns:
-        suffix_check(t_d, i)
+    if i < ns - 1:
+        impossible = impossible and suffix_check(t_d, i)
     return impossible
 
 def m_k_check(t_d, i):
@@ -183,9 +180,12 @@ def m_k_check(t_d, i):
     return False
 
 def suffix_check(t_d, i):
-    global t_a, t_r, m_k
-    suf_min = min(range_d_table[i:], key=lambda x: x[0])[0]
-    suf_max = max(range_d_table[i:], key=lambda x: x[1])[1]
+    global t_a, t_r, m_k, o_d
+    n = o_d - (t_a - t_r) 
+    if n < suffix_min_max_table[i][0] or n > suffix_min_max_table[i][1]:
+        return True
+    return False
+    
 
 def get_suffix_min_max_table():
     suffix_min_max_table = []
