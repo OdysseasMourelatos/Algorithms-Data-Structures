@@ -27,6 +27,9 @@ def main():
     transformation_table = get_transformation_table(standard_digits, m_k)
     
     sort_by_cost(digits)
+    print(transformation_table[2])
+    print(transformation_table[4])
+    print(transformation_table[9])
     global range_d_table, suffix_min_max_table
     range_d_table = get_d_range(digits)
     suffix_min_max_table = get_suffix_min_max_table()
@@ -110,7 +113,7 @@ def get_transformation_table(digits, m_k):
 def sort_by_cost(digits):
     global transformation_table
     for digit in digits:
-        transformation_table[digit] = dict(sorted(transformation_table[digit].items(), key=lambda item: item[1][3]))
+        transformation_table[digit] = dict(sorted(transformation_table[digit].items(), key=lambda item: item[1][3][0] + item[1][3][1]))
 o_a, o_r = 0, 0
 
 def get_d_range(digits):
@@ -135,8 +138,9 @@ nodes_visited = 0
 nodes_pruned = 0
 
 def do_slot(i, ns):
-    global proposed_solution, solutions, nodes_visited, nodes_pruned
+    global proposed_solution, solutions, nodes_visited, nodes_pruned, t_a, t_r
     nodes_visited += 1
+    print(nodes_visited, nodes_pruned, proposed_solution, t_a, t_r)
     if i == ns:
         if check_solution(proposed_solution):
             solutions.append(proposed_solution.copy())
@@ -186,7 +190,6 @@ def suffix_check(t_d, i):
         return True
     return False
     
-
 def get_suffix_min_max_table():
     suffix_min_max_table = []
     for i in range(len(range_d_table) - 1):
