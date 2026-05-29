@@ -228,8 +228,10 @@ def suffix_check(t_d, i):
 def get_suffix_min_max_table():
     suffix_min_max_table = []
     for i in range(len(range_d_table) - 1):
-        suf_min = min(range_d_table[i+1:], key=lambda x: x[0])[0]
-        suf_max = max(range_d_table[i+1:], key=lambda x: x[1])[1]
+        suf_min, suf_max = 0,0 
+        for j in range(i+1, len(range_d_table)):
+            suf_min += range_d_table[j][0]
+            suf_max += range_d_table[j][1]
         table_entry = (suf_min, suf_max)
         suffix_min_max_table.append(table_entry)
     return suffix_min_max_table
