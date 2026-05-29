@@ -17,14 +17,17 @@ def main():
     if num_slots > 6:
         sys.exit("Too many digits: " + str(num_slots) + ". Maximum is 6.")
     
-    global digits, standard_digits
-    digits = []
+    global digits, standard_digits, numbers_length
+    digits, numbers_length = [], []
     for number in numbers:
-        if len(number) == 2:
-            digits.append((int(number[0]), int(number[1])))
+        length = len(number)
+        if length == 2:
+            digits.append([int(number[0]), int(number[1])])
         else:
-            digits.append(int(number[0]))
+            digits.append([int(number[0])])
+        numbers_length.append(length)
     print(digits)
+    print(numbers_length)
     
     standard_digits = create_digits_table()
     
@@ -115,16 +118,19 @@ def get_transformation_table(digits, m_k):
     return transformation_table
 
 def sort_by_cost(digits):
-    global transformation_table
+    global transformation_table, numbers_length
+    i = 0
     for digit in digits:
-        transformation_table[digit] = dict(sorted(transformation_table[digit].items(), key=lambda item: item[1][3][0] + item[1][3][1]))
-
+        for j in range(numbers_length[i]):
+            transformation_table[digit[j]] = dict(sorted(transformation_table[digit[j]].items(), key=lambda item: item[1][3][0] + item[1][3][1]))
+        i+=1
+        
 o_a, o_r = 0, 0
 
 def get_d_range(digits):
     range_d_table = []
     for digit in digits:
-        min_d, max_d = min(transformation_table[digit].items(), key=lambda x: x[1][4]), max(transformation_table[digit].items(), key=lambda x: x[1][4])
+        min_d, max_d = min(transformation_table[digit[0]].items(), key=lambda x: x[1][4]), max(transformation_table[digit[0]].items(), key=lambda x: x[1][4])
         min_d, max_d = min_d[1][4], max_d[1][4]
         range_d = (min_d, max_d)
         range_d_table.append(range_d)
@@ -155,7 +161,7 @@ def do_slot(i, ns):
         if not impossible_to_find_solution(t_d, i, ns):
             proposed_solution[i] = t_d
             do_slot(i+1, ns)
-            update_total_additions_and_removals(transformation_table[digits[i]].get(t_d)[3][0], transformation_table[digits[i]].get(t_d)[3][1], add = False)
+            update_total_additions_and_removals(transformation_table[digits[i][0]].get(t_d)[3][0], transformation_table[digits[i][0]].get(t_d)[3][1], add = False)
         else:
             nodes_pruned += 1
 
@@ -165,8 +171,8 @@ def find_moves(solution, t_a, t_r):
     global digits, transformation_table, moves, standard_digits
     additions, removals = [], []
     for i in range(len(solution)):
-        addition = list(transformation_table[digits[i]].get(solution[i])[1])
-        removal = list(transformation_table[digits[i]].get(solution[i])[2])
+        addition = list(transformation_table[digits[i][0]].get(solution[i])[1])
+        removal = list(transformation_table[digits[i][0]].get(solution[i])[2])
         letter = chr(ord('A')+i)
         for j in range(len(addition)):
             additions.append(letter + str(addition[j]))
@@ -182,7 +188,7 @@ def check_solution(solution):
 
 def current_slot(i):
     digit = digits[i]
-    t_ds = transformation_table[digit].keys()
+    t_ds = transformation_table[digit[0]].keys()
     return t_ds
 
 def impossible_to_find_solution(t_d, i, ns):
@@ -194,7 +200,7 @@ def impossible_to_find_solution(t_d, i, ns):
 
 def m_k_check(t_d, i, ns):
     global t_a, t_r, m_k
-    data = transformation_table[digits[i]].get(t_d)
+    data = transformation_table[digits[i][0]].get(t_d)
     update_total_additions_and_removals(data[3][0], data[3][1], add = True)
     if t_a + o_a > m_k or t_r + o_r > m_k:
         update_total_additions_and_removals(data[3][0], data[3][1], add = False)
@@ -210,7 +216,7 @@ def suffix_check(t_d, i):
     global t_a, t_r, m_k, o_d
     n = o_d - (t_a - t_r) 
     if n < suffix_min_max_table[i][0] or n > suffix_min_max_table[i][1]:
-        update_total_additions_and_removals(transformation_table[digits[i]].get(t_d)[3][0], transformation_table[digits[i]].get(t_d)[3][1], add = False)
+        update_total_additions_and_removals(transformation_table[digits[i][0]].get(t_d)[3][0], transformation_table[digits[i][0]].get(t_d)[3][1], add = False)
         return True
     return False
     
