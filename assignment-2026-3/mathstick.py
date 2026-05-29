@@ -129,11 +129,15 @@ o_a, o_r = 0, 0
 
 def get_d_range(digits):
     range_d_table = []
+    i = 0
     for digit in digits:
-        min_d, max_d = min(transformation_table[digit[0]].items(), key=lambda x: x[1][4]), max(transformation_table[digit[0]].items(), key=lambda x: x[1][4])
-        min_d, max_d = min_d[1][4], max_d[1][4]
-        range_d = (min_d, max_d)
-        range_d_table.append(range_d)
+        for j in range(numbers_length[i]):
+            print(digit, j)
+            min_d, max_d = min(transformation_table[digit[j]].items(), key=lambda x: x[1][4]), max(transformation_table[digit[j]].items(), key=lambda x: x[1][4])
+            min_d, max_d = min_d[1][4], max_d[1][4]
+            range_d = (min_d, max_d)
+            range_d_table.append(range_d)
+        i+=1
     return range_d_table     
  
 def change_operator():
