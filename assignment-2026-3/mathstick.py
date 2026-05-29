@@ -33,7 +33,6 @@ def main():
     range_d_table = get_d_range(digits)
     suffix_min_max_table = get_suffix_min_max_table()
     
-    print(suffix_min_max_table)
     #Begin the recurssion
     global t_a, t_r, solutions, o_d
     t_a, t_r, o_d = 0, 0, 0
@@ -144,6 +143,7 @@ def do_slot(i, ns):
     if i == ns:
         if check_solution(proposed_solution):
             solutions.append(proposed_solution.copy())
+            print("Solution found: " + str(proposed_solution))
             proposed_solution[i-1] = -1
         return
     for t_d in current_slot(i):
@@ -170,7 +170,7 @@ def impossible_to_find_solution(t_d, i, ns):
     global t_a, t_r, o_a, o_r
     impossible = m_k_check(t_d, i, ns)
     if i < ns - 1 and not impossible:
-        suffix_check(t_d, i)
+        impossible = suffix_check(t_d, i)
     return impossible
 
 def m_k_check(t_d, i, ns):
@@ -191,6 +191,7 @@ def suffix_check(t_d, i):
     global t_a, t_r, m_k, o_d
     n = o_d - (t_a - t_r) 
     if n < suffix_min_max_table[i][0] or n > suffix_min_max_table[i][1]:
+        update_total_additions_and_removals(transformation_table[digits[i]].get(t_d)[3][0], transformation_table[digits[i]].get(t_d)[3][1], add = False)
         return True
     return False
     
