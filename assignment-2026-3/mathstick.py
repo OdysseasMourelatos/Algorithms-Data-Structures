@@ -17,7 +17,7 @@ def main():
     if num_slots > 6:
         sys.exit("Too many digits: " + str(num_slots) + ". Maximum is 6.")
     
-    global digits
+    global digits, standard_digits
     digits = [int(numbers[0]), int(numbers[1]), int(numbers[2])]
     
     standard_digits = create_digits_table()
@@ -44,9 +44,11 @@ def main():
     
     #Run again with the new operator
     do_slot(0, num_slots)
+    
     print(solutions)
     print(nodes_visited, nodes_pruned)
-    
+    print(moves)
+ 
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--problem", help = "PROBLEM", required=True)
@@ -142,6 +144,7 @@ def do_slot(i, ns):
     if i == ns:
         if check_solution(proposed_solution):
             solutions.append([proposed_solution.copy(), nodes_visited, nodes_pruned])
+            find_moves(proposed_solution, t_a, t_r)
             proposed_solution[i-1] = -1
         return
     for t_d in current_slot(i):
@@ -152,6 +155,21 @@ def do_slot(i, ns):
         else:
             nodes_pruned += 1
 
+moves = []
+
+def find_moves(solution, t_a, t_r):
+    global digits, transformation_table, moves, standard_digits
+    additions, removals = [], []
+    for i in range(len(solution)):
+        addition = list(transformation_table[digits[i]].get(solution[i])[1])
+        removal = list(transformation_table[digits[i]].get(solution[i])[2])
+        letter = chr(ord('A')+i)
+        for j in range(len(addition)):
+            additions.append(letter + str(addition[j]))
+        for j in range(len(removal)):
+            removals.append(letter + str(removal[j]))
+    moves.append((removals, additions))
+        
 def check_solution(solution):
     if operator == "+":
         return solution[0] + solution[1] == solution[2]
@@ -209,6 +227,7 @@ def update_total_additions_and_removals(new_a, new_r, add):
     else:
         t_a -= new_a
         t_r -= new_r
+
 
 if __name__ == "__main__":
     main()
