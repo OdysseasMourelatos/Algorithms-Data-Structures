@@ -26,8 +26,6 @@ def main():
             digits.append(int(number[1]))
         numbers_length.append(length)
     
-    print(digits)
-    print(numbers_length)
     standard_digits = create_digits_table()
     
     #Will make it work for numbers greater than 10 soon, for now it only works for single digit numbers
@@ -149,7 +147,6 @@ nodes_pruned = 0
 def do_slot(i, ns):
     global proposed_solution, solutions, nodes_visited, nodes_pruned, t_a, t_r
     nodes_visited += 1
-    print(proposed_solution)
     if i == ns:
         if check_solution(proposed_solution):
             solutions.append([proposed_solution.copy(), nodes_visited, nodes_pruned])
@@ -180,10 +177,19 @@ def find_moves(solution, t_a, t_r):
     moves.append((removals, additions))
         
 def check_solution(solution):
+    numbers = []
+    i = 0
+    for n in numbers_length:
+        if n == 2:
+            number = str(solution[i]) + str(solution[i+1])
+        else:
+            number = solution[i]
+        i+=n
+        numbers.append(int(number))
     if operator == "+":
-        return solution[0] + solution[1] == solution[2]
+        return numbers[0] + numbers[1] == numbers[2]
     else:
-        return solution[0] - solution[1] == solution[2]
+        return numbers[0] - numbers[1] == numbers[2]
 
 def current_slot(i):
     digit = digits[i]
