@@ -18,13 +18,18 @@ def main():
         sys.exit("Too many digits: " + str(num_slots) + ". Maximum is 6.")
     
     global digits, standard_digits
-    digits = [int(numbers[0]), int(numbers[1]), int(numbers[2])]
+    digits = []
+    for number in numbers:
+        if len(number) == 2:
+            digits.append((int(number[0]), int(number[1])))
+        else:
+            digits.append(int(number[0]))
+    print(digits)
     
     standard_digits = create_digits_table()
     
     #Will make it work for numbers greater than 10 soon, for now it only works for single digit numbers
     global transformation_table
-    computer_digits = get_computer_digits(digits[0], digits[1], digits[2], standard_digits)
     transformation_table = get_transformation_table(standard_digits, m_k)
     
     sort_by_cost(digits)
@@ -48,7 +53,10 @@ def main():
     print(solutions)
     print(nodes_visited, nodes_pruned)
     print(moves)
- 
+
+def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves):
+    print()
+    
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--problem", help = "PROBLEM", required=True)
@@ -86,10 +94,6 @@ def create_digits_table():
         {0,1,2,3,4,6} #9
     ]
     return digits     
-
-def get_computer_digits(digit1, digit2, digit3, standard_digits):
-    d1, d2, d3 = standard_digits[digit1], standard_digits[digit2], standard_digits[digit3]
-    return d1, d2, d3
 
 def get_transformation_table(digits, m_k):
     transformation_table=[]
@@ -228,6 +232,9 @@ def update_total_additions_and_removals(new_a, new_r, add):
         t_a -= new_a
         t_r -= new_r
 
+def print_json_output(results):
+    json_output = json.dumps(results, indent=2)
+    print(json_output)
 
 if __name__ == "__main__":
     main()
