@@ -29,7 +29,9 @@ def main():
     sort_by_cost(digits)
     global range_d_table
     range_d_table = get_d_range(digits)
-
+    suffix_min_max_table = get_suffix_min_max_table()
+    print(suffix_min_max_table)
+    
     #Begin the recurssion
     global t_a, t_r, solutions
     t_a, t_r = 0, 0
@@ -144,7 +146,7 @@ def do_slot(i, ns):
             proposed_solution[i-1] = -1
         return
     for t_d in current_slot(i):
-        if not impossible_to_find_solution(t_d, i):
+        if not impossible_to_find_solution(t_d, i, ns):
             proposed_solution[i] = t_d
             do_slot(i+1, ns)
             update_total_additions_and_removals(transformation_table[digits[i]].get(t_d)[3][0], transformation_table[digits[i]].get(t_d)[3][1], add = False)
@@ -165,8 +167,10 @@ def current_slot(i):
     t_ds = transformation_table[digit].keys()
     return t_ds
 
-def impossible_to_find_solution(t_d, i):
+def impossible_to_find_solution(t_d, i, ns):
     impossible = m_k_check(t_d, i)
+    if i < ns:
+        suffix_check(t_d, i)
     return impossible
 
 def m_k_check(t_d, i):
@@ -179,7 +183,18 @@ def m_k_check(t_d, i):
     return False
 
 def suffix_check(t_d, i):
-    print()
+    global t_a, t_r, m_k
+    suf_min = min(range_d_table[i:], key=lambda x: x[0])[0]
+    suf_max = max(range_d_table[i:], key=lambda x: x[1])[1]
+
+def get_suffix_min_max_table():
+    suffix_min_max_table = []
+    for i in range(len(range_d_table) - 1):
+        suf_min = min(range_d_table[i+1:], key=lambda x: x[0])[0]
+        suf_max = max(range_d_table[i+1:], key=lambda x: x[1])[1]
+        table_entry = (suf_min, suf_max)
+        suffix_min_max_table.append(table_entry)
+    return suffix_min_max_table
 
 def update_total_additions_and_removals(new_a, new_r, add):
     global t_a, t_r
