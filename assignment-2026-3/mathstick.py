@@ -21,15 +21,14 @@ def main():
     digits = [int(numbers[0]), int(numbers[1]), int(numbers[2])]
     
     standard_digits = create_digits_table()
+    
     #Will make it work for numbers greater than 10 soon, for now it only works for single digit numbers
     global transformation_table
     computer_digits = get_computer_digits(digits[0], digits[1], digits[2], standard_digits)
     transformation_table = get_transformation_table(standard_digits, m_k)
     
     sort_by_cost(digits)
-    print(transformation_table[2])
-    print(transformation_table[4])
-    print(transformation_table[9])
+    
     global range_d_table, suffix_min_max_table
     range_d_table = get_d_range(digits)
     suffix_min_max_table = get_suffix_min_max_table()
@@ -38,16 +37,16 @@ def main():
     global t_a, t_r, solutions, o_d
     t_a, t_r, o_d = 0, 0, 0
     do_slot(0, num_slots)
+    
+    
     print(solutions)
     
     #Will change the operator once I have found all the solutions with the initial operator
     change_operator()
     o_d = o_r - o_a
     
-    
     #Run again with the new operator
-    do_slot(0, num_slots)
-    print(solutions)
+    #do_slot(0, num_slots)
     
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -114,6 +113,7 @@ def sort_by_cost(digits):
     global transformation_table
     for digit in digits:
         transformation_table[digit] = dict(sorted(transformation_table[digit].items(), key=lambda item: item[1][3][0] + item[1][3][1]))
+
 o_a, o_r = 0, 0
 
 def get_d_range(digits):
@@ -155,13 +155,10 @@ def do_slot(i, ns):
             nodes_pruned += 1
 
 def check_solution(solution):
-    global t_a, t_r, o_a, o_r
-    if t_a + o_a == t_r + o_r:
-        if operator == "+":
-            return solution[0] + solution[1] == solution[2]
-        else:
-            return solution[0] - solution[1] == solution[2]
-    return False
+    if operator == "+":
+        return solution[0] + solution[1] == solution[2]
+    else:
+        return solution[0] - solution[1] == solution[2]
 
 def current_slot(i):
     digit = digits[i]
@@ -169,18 +166,24 @@ def current_slot(i):
     return t_ds
 
 def impossible_to_find_solution(t_d, i, ns):
-    impossible = m_k_check(t_d, i)
-    if i < ns - 1:
-        impossible = impossible and suffix_check(t_d, i)
+    global t_a, t_r, o_a, o_r
+    impossible = m_k_check(t_d, i, ns)
+    if i < ns - 1 and not impossible:
+        suffix_check(t_d, i)
     return impossible
 
-def m_k_check(t_d, i):
+def m_k_check(t_d, i, ns):
     global t_a, t_r, m_k
     data = transformation_table[digits[i]].get(t_d)
     update_total_additions_and_removals(data[3][0], data[3][1], add = True)
     if t_a + o_a > m_k or t_r + o_r > m_k:
         update_total_additions_and_removals(data[3][0], data[3][1], add = False)
         return True
+
+    if i == ns - 1 and t_a + o_a != t_r + o_r:
+        update_total_additions_and_removals(data[3][0], data[3][1], add = False)
+        return True
+        
     return False
 
 def suffix_check(t_d, i):
