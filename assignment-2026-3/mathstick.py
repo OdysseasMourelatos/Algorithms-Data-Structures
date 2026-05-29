@@ -21,14 +21,13 @@ def main():
     digits, numbers_length = [], []
     for number in numbers:
         length = len(number)
+        digits.append(int(number[0]))
         if length == 2:
-            digits.append([int(number[0]), int(number[1])])
-        else:
-            digits.append([int(number[0])])
+            digits.append(int(number[1]))
         numbers_length.append(length)
+    
     print(digits)
     print(numbers_length)
-    
     standard_digits = create_digits_table()
     
     #Will make it work for numbers greater than 10 soon, for now it only works for single digit numbers
@@ -40,6 +39,9 @@ def main():
     global range_d_table, suffix_min_max_table
     range_d_table = get_d_range(digits)
     suffix_min_max_table = get_suffix_min_max_table()
+    
+    global proposed_solution
+    proposed_solution = [-1 for i in range(num_slots)]
     
     #Begin the recurssion
     global t_a, t_r, solutions, o_d
@@ -119,25 +121,18 @@ def get_transformation_table(digits, m_k):
 
 def sort_by_cost(digits):
     global transformation_table, numbers_length
-    i = 0
     for digit in digits:
-        for j in range(numbers_length[i]):
-            transformation_table[digit[j]] = dict(sorted(transformation_table[digit[j]].items(), key=lambda item: item[1][3][0] + item[1][3][1]))
-        i+=1
+        transformation_table[digit] = dict(sorted(transformation_table[digit].items(), key=lambda item: item[1][3][0] + item[1][3][1]))
         
 o_a, o_r = 0, 0
 
 def get_d_range(digits):
     range_d_table = []
-    i = 0
     for digit in digits:
-        for j in range(numbers_length[i]):
-            print(digit, j)
-            min_d, max_d = min(transformation_table[digit[j]].items(), key=lambda x: x[1][4]), max(transformation_table[digit[j]].items(), key=lambda x: x[1][4])
-            min_d, max_d = min_d[1][4], max_d[1][4]
-            range_d = (min_d, max_d)
-            range_d_table.append(range_d)
-        i+=1
+        min_d, max_d = min(transformation_table[digit].items(), key=lambda x: x[1][4]), max(transformation_table[digit].items(), key=lambda x: x[1][4])
+        min_d, max_d = min_d[1][4], max_d[1][4]
+        range_d = (min_d, max_d)
+        range_d_table.append(range_d)
     return range_d_table     
  
 def change_operator():
@@ -147,7 +142,6 @@ def change_operator():
     else:
         o_a, operator = 1, "+"
 
-proposed_solution = [-1, -1, -1]
 solutions = []
 nodes_visited = 0
 nodes_pruned = 0
@@ -155,6 +149,7 @@ nodes_pruned = 0
 def do_slot(i, ns):
     global proposed_solution, solutions, nodes_visited, nodes_pruned, t_a, t_r
     nodes_visited += 1
+    print(proposed_solution)
     if i == ns:
         if check_solution(proposed_solution):
             solutions.append([proposed_solution.copy(), nodes_visited, nodes_pruned])
@@ -165,7 +160,7 @@ def do_slot(i, ns):
         if not impossible_to_find_solution(t_d, i, ns):
             proposed_solution[i] = t_d
             do_slot(i+1, ns)
-            update_total_additions_and_removals(transformation_table[digits[i][0]].get(t_d)[3][0], transformation_table[digits[i][0]].get(t_d)[3][1], add = False)
+            update_total_additions_and_removals(transformation_table[digits[i]].get(t_d)[3][0], transformation_table[digits[i]].get(t_d)[3][1], add = False)
         else:
             nodes_pruned += 1
 
@@ -175,8 +170,8 @@ def find_moves(solution, t_a, t_r):
     global digits, transformation_table, moves, standard_digits
     additions, removals = [], []
     for i in range(len(solution)):
-        addition = list(transformation_table[digits[i][0]].get(solution[i])[1])
-        removal = list(transformation_table[digits[i][0]].get(solution[i])[2])
+        addition = list(transformation_table[digits[i]].get(solution[i])[1])
+        removal = list(transformation_table[digits[i]].get(solution[i])[2])
         letter = chr(ord('A')+i)
         for j in range(len(addition)):
             additions.append(letter + str(addition[j]))
@@ -192,7 +187,7 @@ def check_solution(solution):
 
 def current_slot(i):
     digit = digits[i]
-    t_ds = transformation_table[digit[0]].keys()
+    t_ds = transformation_table[digit].keys()
     return t_ds
 
 def impossible_to_find_solution(t_d, i, ns):
@@ -204,7 +199,7 @@ def impossible_to_find_solution(t_d, i, ns):
 
 def m_k_check(t_d, i, ns):
     global t_a, t_r, m_k
-    data = transformation_table[digits[i][0]].get(t_d)
+    data = transformation_table[digits[i]].get(t_d)
     update_total_additions_and_removals(data[3][0], data[3][1], add = True)
     if t_a + o_a > m_k or t_r + o_r > m_k:
         update_total_additions_and_removals(data[3][0], data[3][1], add = False)
@@ -220,7 +215,7 @@ def suffix_check(t_d, i):
     global t_a, t_r, m_k, o_d
     n = o_d - (t_a - t_r) 
     if n < suffix_min_max_table[i][0] or n > suffix_min_max_table[i][1]:
-        update_total_additions_and_removals(transformation_table[digits[i][0]].get(t_d)[3][0], transformation_table[digits[i][0]].get(t_d)[3][1], add = False)
+        update_total_additions_and_removals(transformation_table[digits[i]].get(t_d)[3][0], transformation_table[digits[i]].get(t_d)[3][1], add = False)
         return True
     return False
     
