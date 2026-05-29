@@ -33,6 +33,7 @@ def main():
     range_d_table = get_d_range(digits)
     suffix_min_max_table = get_suffix_min_max_table()
     
+    print(suffix_min_max_table)
     #Begin the recurssion
     global t_a, t_r, solutions, o_d
     t_a, t_r, o_d = 0, 0, 0
@@ -140,7 +141,6 @@ nodes_pruned = 0
 def do_slot(i, ns):
     global proposed_solution, solutions, nodes_visited, nodes_pruned, t_a, t_r
     nodes_visited += 1
-    print(nodes_visited, nodes_pruned, proposed_solution, t_a, t_r)
     if i == ns:
         if check_solution(proposed_solution):
             solutions.append(proposed_solution.copy())
@@ -153,6 +153,7 @@ def do_slot(i, ns):
             update_total_additions_and_removals(transformation_table[digits[i]].get(t_d)[3][0], transformation_table[digits[i]].get(t_d)[3][1], add = False)
         else:
             nodes_pruned += 1
+        print(nodes_visited, nodes_pruned, proposed_solution, i, t_d, t_a, t_r)
 
 def check_solution(solution):
     if operator == "+":
