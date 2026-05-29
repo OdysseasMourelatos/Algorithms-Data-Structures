@@ -17,7 +17,6 @@ def main():
     if num_slots > 6:
         sys.exit("Too many digits: " + str(num_slots) + ". Maximum is 6.")
     
-    
     global digits
     digits = [int(numbers[0]), int(numbers[1]), int(numbers[2])]
     
@@ -26,7 +25,11 @@ def main():
     global transformation_table
     computer_digits = get_computer_digits(digits[0], digits[1], digits[2], standard_digits)
     transformation_table = get_transformation_table(standard_digits, m_k)
+    
     sort_by_cost(digits)
+    global range_d_table
+    range_d_table = get_d_range(digits)
+
     #Begin the recurssion
     global t_a, t_r, solutions
     t_a, t_r = 0, 0
@@ -108,6 +111,15 @@ def sort_by_cost(digits):
         transformation_table[digit] = dict(sorted(transformation_table[digit].items(), key=lambda item: item[1][3]))
 o_a, o_r = 0, 0
 
+def get_d_range(digits):
+    range_d_table = []
+    for digit in digits:
+        min_d, max_d = min(transformation_table[digit].items(), key=lambda x: x[1][4]), max(transformation_table[digit].items(), key=lambda x: x[1][4])
+        min_d, max_d = min_d[1][4], max_d[1][4]
+        range_d = (min_d, max_d)
+        range_d_table.append(range_d)
+    return range_d_table     
+ 
 def change_operator():
     global operator, o_a, o_r
     if operator == "+":
@@ -154,7 +166,7 @@ def current_slot(i):
     return t_ds
 
 def impossible_to_find_solution(t_d, i):
-    impossible = m_k_check (t_d, i)
+    impossible = m_k_check(t_d, i)
     return impossible
 
 def m_k_check(t_d, i):
@@ -165,6 +177,9 @@ def m_k_check(t_d, i):
         update_total_additions_and_removals(data[3][0], data[3][1], add = False)
         return True
     return False
+
+def suffix_check(t_d, i):
+    print()
 
 def update_total_additions_and_removals(new_a, new_r, add):
     global t_a, t_r
