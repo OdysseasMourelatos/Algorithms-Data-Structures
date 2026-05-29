@@ -105,11 +105,7 @@ def get_transformation_table(digits, m_k):
 def sort_by_cost(digits):
     global transformation_table
     for digit in digits:
-        if digit == 9:
-            print(transformation_table[digit])
         transformation_table[digit] = dict(sorted(transformation_table[digit].items(), key=lambda item: item[1][3]))
-        if digit == 9:
-            print(transformation_table[digit])
 o_a, o_r = 0, 0
 
 def change_operator():
@@ -122,23 +118,26 @@ def change_operator():
 proposed_solution = [-1, -1, -1]
 solutions = []
 nodes_visited = 0
+nodes_pruned = 0
 
 def do_slot(i, ns):
-    global proposed_solution, solutions, nodes_visited
+    global proposed_solution, solutions, nodes_visited, nodes_pruned
     nodes_visited += 1
     if i == ns:
         if check_solution(proposed_solution):
             print(nodes_visited)
+            print(nodes_pruned)
             print(proposed_solution)
             solutions.append(proposed_solution.copy())
             proposed_solution[i-1] = -1
         return
-    
     for t_d in current_slot(i):
         if not impossible_to_find_solution(t_d, i):
             proposed_solution[i] = t_d
             do_slot(i+1, ns)
             update_total_additions_and_removals(transformation_table[digits[i]].get(t_d)[3][0], transformation_table[digits[i]].get(t_d)[3][1], add = False)
+        else:
+            nodes_pruned += 1
 
 def check_solution(solution):
     global t_a, t_r, o_a, o_r
@@ -155,6 +154,10 @@ def current_slot(i):
     return t_ds
 
 def impossible_to_find_solution(t_d, i):
+    impossible = m_k_check (t_d, i)
+    return impossible
+
+def m_k_check(t_d, i):
     global t_a, t_r, m_k
     data = transformation_table[digits[i]].get(t_d)
     update_total_additions_and_removals(data[3][0], data[3][1], add = True)
