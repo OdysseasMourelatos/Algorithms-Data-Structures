@@ -38,15 +38,14 @@ def main():
     t_a, t_r, o_d = 0, 0, 0
     do_slot(0, num_slots)
     
-    
-    print(solutions)
-    
     #Will change the operator once I have found all the solutions with the initial operator
     change_operator()
     o_d = o_r - o_a
     
     #Run again with the new operator
-    #do_slot(0, num_slots)
+    do_slot(0, num_slots)
+    print(solutions)
+    print(nodes_visited, nodes_pruned)
     
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -142,8 +141,7 @@ def do_slot(i, ns):
     nodes_visited += 1
     if i == ns:
         if check_solution(proposed_solution):
-            solutions.append(proposed_solution.copy())
-            print("Solution found: " + str(proposed_solution))
+            solutions.append([proposed_solution.copy(), nodes_visited, nodes_pruned])
             proposed_solution[i-1] = -1
         return
     for t_d in current_slot(i):
@@ -153,7 +151,6 @@ def do_slot(i, ns):
             update_total_additions_and_removals(transformation_table[digits[i]].get(t_d)[3][0], transformation_table[digits[i]].get(t_d)[3][1], add = False)
         else:
             nodes_pruned += 1
-        print(nodes_visited, nodes_pruned, proposed_solution, i, t_d, t_a, t_r)
 
 def check_solution(solution):
     if operator == "+":
