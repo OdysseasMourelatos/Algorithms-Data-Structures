@@ -258,11 +258,11 @@ def check_solution(solution):
         else: #Then it's only 1 digit
             number = solution[i]
         i+=n
-        numbers.append(int(number))
+        numbers.append(number)
     if operator == "+":
-        return numbers[0] + numbers[1] == numbers[2]
+        return int(numbers[0]) + int(numbers[1]) == int(numbers[2])
     else:
-        return numbers[0] - numbers[1] == numbers[2]
+        return int(numbers[0]) - int(numbers[1]) == int(numbers[2])
 
 #Find the digits in which digit[i] can be transformed to
 def current_slot(i):
