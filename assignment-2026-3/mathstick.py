@@ -63,23 +63,55 @@ def main():
     #Run again with the new operator
     do_slot(0, num_slots)
     
+    #Get the number of solution for each number of moves
     counts = find_counts(moves)
-    print(solutions)
+    print(solutions[0][1])
     print(nodes_visited, nodes_pruned)
     print(moves)
     print(counts)
-
+    build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves)
+    
 def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves):
-    print()
+    results = {
+        "problem" : problem,
+        "max_k" : m_k,
+        "counts" : {
+            i+1 : counts[i] for i in range(m_k)
+        },
+        "nodes_visited" : nodes_visited,
+        "nodes_pruned" : nodes_pruned,
+        "solutions" : {
+            i+1 :[format_solutions(i, solutions, moves)] for i in range(m_k)
+        }
+    }
+    print_json_output(results)
+    
 
+def format_solutions(i, solutions, moves):
+    formated_sols = {
+        "equation" : solutions[i][0],
+        "picks": [
+            moves[i][0]
+        ],
+        "places" : [
+            moves[i][1]
+        ],
+        "moves" : [
+            "Move(" + str(moves[i][0]) + "," + str(moves[i][1]) + ")"
+        ],
+        "nodes_visited" : solutions[i][1],
+        "nodes_pruned" : solutions[i][2]
+    }
+
+#Get the number of solution for each number of moves
 def find_counts(moves):
     counts=[0 for i in range(m_k)]
     for move in moves:
         len_r, len_a = len(move[0]), len(move[1])
         if len_r < len_a:
-            move[0].append("G0")
+            move[0].append("G0") #We changed the operator by adding G0
         elif len_r > len_a:
-            move[1].append("G0")
+            move[1].append("G0") #We changed the operator by removing G0
         move_length = max(len_r, len_a)
         counts[move_length - 1]+=1
     return counts
