@@ -63,13 +63,27 @@ def main():
     #Run again with the new operator
     do_slot(0, num_slots)
     
+    counts = find_counts(moves)
     print(solutions)
     print(nodes_visited, nodes_pruned)
     print(moves)
+    print(counts)
 
 def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves):
     print()
 
+def find_counts(moves):
+    counts=[0 for i in range(m_k)]
+    for move in moves:
+        len_r, len_a = len(move[0]), len(move[1])
+        if len_r < len_a:
+            move[0].append("G0")
+        elif len_r > len_a:
+            move[1].append("G0")
+        move_length = max(len_r, len_a)
+        counts[move_length - 1]+=1
+    return counts
+        
 #Parse the arguments  
 def parse_arguments():
     parser = argparse.ArgumentParser()
