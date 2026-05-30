@@ -86,7 +86,9 @@ def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, 
                 + solutions[j + counts[i-1]][3] + " " + 
                 str(solutions[j + counts[i-1]][0][1]) + " = " 
                 + str(solutions[j + counts[i-1]][0][2]),
-                
+                "picks" : moves[j + counts[i-1]][0],
+                "places" : moves[j + counts[i-1]][1],
+                "moves": "",
                 "nodes_visited" : solutions[j + counts[i-1]][1],
                 "nodes_pruned" : solutions[j + counts[i-1]][2]
                 } for j in range(counts[i]) if i > 0] for i in range(1, m_k+1)
