@@ -65,10 +65,8 @@ def main():
     
     #Get the number of solution for each number of moves
     counts = find_counts(moves)
-    print(solutions)
-    print(nodes_visited, nodes_pruned)
-    print(moves)
-    print(counts)
+    
+    #Build and print results
     build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves)
     
 def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves):
@@ -88,7 +86,9 @@ def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, 
                 + str(solutions[j + counts[i-1]][0][2]),
                 "picks" : moves[j + counts[i-1]][0],
                 "places" : moves[j + counts[i-1]][1],
-                "moves": "",
+                "moves": [
+                    "Move(" + str(moves[j + counts[i-1]][0][k]) + "," + str(moves[j + counts[i-1]][1][k]) + ")"
+                    for k in range(len(moves[j + counts[i-1]][0]))],
                 "nodes_visited" : solutions[j + counts[i-1]][1],
                 "nodes_pruned" : solutions[j + counts[i-1]][2]
                 } for j in range(counts[i]) if i > 0] for i in range(1, m_k+1)
