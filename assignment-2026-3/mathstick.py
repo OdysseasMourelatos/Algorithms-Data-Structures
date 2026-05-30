@@ -95,22 +95,6 @@ def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, 
         }
     }
     print_json_output(results)
-    
-def format_solutions(i, solutions, moves):
-    formated_sols = {
-        "equation" : solutions[i][0],
-        "picks": [
-            moves[i][0]
-        ],
-        "places" : [
-            moves[i][1]
-        ],
-        "moves" : [
-            "Move(" + str(moves[i][0]) + "," + str(moves[i][1]) + ")"
-        ],
-        "nodes_visited" : solutions[i][1],
-        "nodes_pruned" : solutions[i][2]
-    }
 
 #Get the number of solution for each number of moves
 def find_counts(moves):
@@ -235,7 +219,7 @@ def do_slot(i, ns):
     nodes_visited += 1 #Increase it by one every time we call the algorithm
     if i == ns: #If we succesfully reached the last slot
         if check_solution(proposed_solution): #Check the validity of the equation
-            solutions.append([proposed_solution.copy(), nodes_visited, nodes_pruned, operator]) #Add it as a solution
+            solutions.append([numbers, nodes_visited, nodes_pruned, operator]) #Add it as a solution
             find_moves(proposed_solution) #Get its moves
             proposed_solution[i-1] = -1 #Change the proposed solution back to -1 (indicates empty spot)
         return
@@ -265,6 +249,7 @@ def find_moves(solution):
 
 #Check the validity of the equation
 def check_solution(solution):
+    global numbers
     numbers = []
     i = 0
     for n in numbers_length: 
