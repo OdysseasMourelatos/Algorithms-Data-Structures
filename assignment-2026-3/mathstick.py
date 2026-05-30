@@ -47,15 +47,18 @@ def main():
     proposed_solution = [-1 for i in range(num_slots)]
     
     #Begin the recurssion
-    global t_a, t_r, solutions, o_d
-    t_a, t_r, o_d = 0, 0, 0
-    if operator != '+': #Change it to + first
-        change_operator()
+    global t_a, t_r, solutions, o_d, o_r, o_a
+    t_a, t_r, o_d, changed_operator = 0, 0, 0, False
+    if operator != '+': 
+        change_operator() #Change it to + first
+        changed_operator = True
         o_d = o_r - o_a
     do_slot(0, num_slots)
     
     #Change the operator once I have found all the solutions with the initial operator
     change_operator()
+    if changed_operator:
+        o_a, o_r = 0, 0
     o_d = o_r - o_a
     #Run again with the new operator
     do_slot(0, num_slots)
@@ -175,13 +178,13 @@ nodes_pruned = 0
 def do_slot(i, ns):
     global proposed_solution, solutions, nodes_visited, nodes_pruned, t_a, t_r
     nodes_visited += 1 #Increase it by one every time we call the algorithm
-    if i == ns:
+    if i == ns: #If we succesfully reached the last slot
         if check_solution(proposed_solution): #Check the validity of the equation
             solutions.append([proposed_solution.copy(), nodes_visited, nodes_pruned]) #Add it as a solution
             find_moves(proposed_solution) #Get its moves
             proposed_solution[i-1] = -1 #Change the proposed solution back to -1 (indicates empty spot)
         return
-    for t_d in current_slot(i):
+    for t_d in current_slot(i): #For each available digit for transformation
         if not impossible_to_find_solution(t_d, i, ns): #If it passes all tests
             proposed_solution[i] = t_d #Track the digit
             do_slot(i+1, ns) #Recurssive call
