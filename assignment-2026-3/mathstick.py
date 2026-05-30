@@ -65,7 +65,7 @@ def main():
     
     #Get the number of solution for each number of moves
     counts = find_counts(moves)
-    print(solutions[0][1])
+    print(solutions)
     print(nodes_visited, nodes_pruned)
     print(moves)
     print(counts)
@@ -76,17 +76,19 @@ def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, 
         "problem" : problem,
         "max_k" : m_k,
         "counts" : {
-            i+1 : counts[i] for i in range(m_k)
+            i : counts[i] for i in range(1, m_k+1)
         },
         "nodes_visited" : nodes_visited,
         "nodes_pruned" : nodes_pruned,
         "solutions" : {
-            i+1 :[format_solutions(i, solutions, moves)] for i in range(m_k)
+            i+1 : [ {
+                "nodes_visited" : solutions[j + counts[i-1]][1],
+                "nodes_pruned" : solutions[j + counts[i-1]][2]
+                } for j in range(counts[i]) if i > 0] for i in range(m_k)
         }
     }
     print_json_output(results)
     
-
 def format_solutions(i, solutions, moves):
     formated_sols = {
         "equation" : solutions[i][0],
@@ -105,7 +107,7 @@ def format_solutions(i, solutions, moves):
 
 #Get the number of solution for each number of moves
 def find_counts(moves):
-    counts=[0 for i in range(m_k)]
+    counts=[0 for i in range(m_k+1)]
     for move in moves:
         len_r, len_a = len(move[0]), len(move[1])
         if len_r < len_a:
@@ -113,7 +115,7 @@ def find_counts(moves):
         elif len_r > len_a:
             move[1].append("G0") #We changed the operator by removing G0
         move_length = max(len_r, len_a)
-        counts[move_length - 1]+=1
+        counts[move_length]+=1
     return counts
         
 #Parse the arguments  
@@ -226,7 +228,7 @@ def do_slot(i, ns):
     nodes_visited += 1 #Increase it by one every time we call the algorithm
     if i == ns: #If we succesfully reached the last slot
         if check_solution(proposed_solution): #Check the validity of the equation
-            solutions.append([proposed_solution.copy(), nodes_visited, nodes_pruned]) #Add it as a solution
+            solutions.append([proposed_solution.copy(), nodes_visited, nodes_pruned, operator]) #Add it as a solution
             find_moves(proposed_solution) #Get its moves
             proposed_solution[i-1] = -1 #Change the proposed solution back to -1 (indicates empty spot)
         return
