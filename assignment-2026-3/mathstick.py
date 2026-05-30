@@ -81,10 +81,10 @@ def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, 
         "nodes_visited" : nodes_visited,
         "nodes_pruned" : nodes_pruned,
         "solutions" : {
-            i+1 : [ {
+            i : [ {
                 "nodes_visited" : solutions[j + counts[i-1]][1],
                 "nodes_pruned" : solutions[j + counts[i-1]][2]
-                } for j in range(counts[i]) if i > 0] for i in range(m_k)
+                } for j in range(counts[i]) if i > 0] for i in range(1, m_k+1)
         }
     }
     print_json_output(results)
