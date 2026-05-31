@@ -344,7 +344,7 @@ def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions):
         "problem" : problem,
         "max_k" : m_k,
         "counts" : {
-            i : counts[i] for i in range(0, m_k)
+            i+1 : counts[i] for i in range(0, m_k)
         },
         "nodes_visited" : nodes_visited,
         "nodes_pruned" : nodes_pruned,
