@@ -4,7 +4,7 @@ def main():
     #Parsing the arguments
     args = parse_arguments()
     global m_k
-    problem, m_k = args.problem, args.max_k
+    problem, m_k = args.problem, int(args.max_k)
     
     #Checking the validity of the problem and getting the numbers, the operator & the number of slots
     global operator
@@ -13,18 +13,9 @@ def main():
     
     #Seperate digits and numbers
     global digits, standard_digits, numbers_length
-    digits, numbers_length = [], []
-    for number in numbers:
-        length = len(number)
-        digits.append(int(number[0]))
-        if length == 2: #If we have a number with 2 digits
-            digits.append(int(number[1]))
-        numbers_length.append(length) #Keep the length of each number
-    
-    #Create standard digits
-    standard_digits = create_digits_table()
-    
-    #Get the transformation table
+    digits, numbers_length = get_digits_and_numbers_length(numbers)
+    #Create standard digits & get the transformation table
+    standard_digits = create_standard_digits_table()
     global transformation_table
     transformation_table = get_transformation_table(standard_digits, m_k)
     
@@ -62,7 +53,11 @@ def main():
     
     #Build and print results
     build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves)
-    
+
+#-------------------------------------------------------------------------
+#Functions to get the initial data and check the validity of the arguments
+#-------------------------------------------------------------------------
+
 #Parse the arguments  
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -97,8 +92,22 @@ def find_num_slots(numbers):
         num_slots += len(number)
     return num_slots
 
+#Seperate digits and numbers
+def get_digits_and_numbers_length(numbers):
+    digits, numbers_length = [], []
+    for number in numbers:
+        length = len(number)
+        digits.append(int(number[0]))
+        if length == 2: #If we have a number with 2 digits
+            digits.append(int(number[1]))
+        numbers_length.append(length) #Keep the length of each number
+    return digits, numbers_length
+#-----------------------------------------------------------------
+#Functions to get standard digits tablem, the transformation table
+#-----------------------------------------------------------------
+
 #Standard digits table
-def create_digits_table():
+def create_standard_digits_table():
     standard_digits = [
         {1,2,3,4,5,6}, #0
         {2,3}, #1
@@ -140,7 +149,11 @@ def sort_by_cost(digits):
     global transformation_table, numbers_length
     for digit in digits:
         transformation_table[digit] = dict(sorted(transformation_table[digit].items(), key=lambda item: item[1][3][0] + item[1][3][1]))
-        
+
+#-----------------------------------------------------------------
+
+#-----------------------------------------------------------------
+
 o_a, o_r = 0, 0
 #Change the operator from + to - and from - to +
 def change_operator():
