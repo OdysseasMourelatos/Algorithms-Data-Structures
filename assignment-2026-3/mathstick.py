@@ -320,15 +320,19 @@ def find_moves(solution):
             additions.append(letter + str(addition[j]))
         for j in range(len_r): #We could've removed more than 1 to get to this letter
             removals.append(letter + str(removal[j]))
-        if len_r < len_a:
-            removals.append("G0")
-        elif len_a < len_r:
-            additions.append("G0")
-    return removals, additions, max(len_a, len_r)
+    
+    #Total additions and removals of the solution
+    additions_l, removals_l = len(additions), len(removals)    
+    if removals_l < additions_l:
+        removals.append("G0")
+    elif additions_l < removals_l:
+        additions.append("G0")
+        
+    return removals, additions, max(additions_l, removals_l)
 
 #Get the number of solutions for each number of moves
 def find_counts(solutions):
-    counts = [len(solutions[i]) for i in range(m_k+1)]
+    counts = [len(solutions[i]) for i in range(1, m_k+1)]
     return counts
 
 #-------------------------------------
@@ -340,7 +344,7 @@ def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions):
         "problem" : problem,
         "max_k" : m_k,
         "counts" : {
-            i : counts[i] for i in range(1, m_k+1)
+            i : counts[i] for i in range(0, m_k)
         },
         "nodes_visited" : nodes_visited,
         "nodes_pruned" : nodes_pruned,
