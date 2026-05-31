@@ -6,8 +6,9 @@ def main():
     global m_k
     problem, m_k = args.problem, int(args.max_k)
     
-    #Checking the validity of the problem and getting the numbers, the operator & the number of slots
+    #Checking the validity of the arguments and getting the numbers, the operator & the number of slots
     global operator
+    check_valid_mk(m_k)
     numbers, operator = check_valid_problem(problem)
     num_slots = find_num_slots(numbers)
     
@@ -86,6 +87,10 @@ def check_valid_problem(problem):
                 sys.exit("Too many digits: " + number + " (" + str(len(number)) + "). Maximum is 2 for each number.")
     return numbers, operator
 
+def check_valid_mk(m_k):
+    if m_k <= 0:
+        sys.exit("Invalid m_k: Should be greater than zero")
+    
 #Find number of slots
 def find_num_slots(numbers):
     num_slots = 0
