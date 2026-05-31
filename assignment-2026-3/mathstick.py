@@ -29,12 +29,13 @@ def main():
     range_d_table = get_d_range(digits)
     suffix_min_max_table = get_suffix_min_max_table()
     
-    #Track each proposed solution, starting from [-1, ..., -1] to indicate absence of digits
-    global proposed_solution
+    #Track each proposed solution, starting from [-1, ..., -1] to indicate absence of digits, and solutions for each amount of moves
+    global proposed_solution, solutions
     proposed_solution = [-1 for i in range(num_slots)]
+    solutions = { i: [] for i in range(1, m_k+1)}
     
     #Begin the recurssion
-    global t_a, t_r, solutions, o_d, o_r, o_a
+    global t_a, t_r, o_d, o_r, o_a
     t_a, t_r, o_d, changed_operator = 0, 0, 0, False
     if operator != '+': 
         change_operator() #Change it to + first
@@ -51,10 +52,10 @@ def main():
     do_slot(0, num_slots)
     
     #Get the number of solutions for each number of moves
-    counts, sorted_results = find_counts_and_sorted_solutions(moves)
+    counts = find_counts(solutions)
     
     #Build and print results
-    build_results(problem, m_k, counts, nodes_visited, nodes_pruned, sorted_results)
+    build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions)
 
 #-------------------------------------------------------------------------
 #Functions to get the initial data and check the validity of the arguments
@@ -197,7 +198,6 @@ def change_operator():
 #The recurssive algorithm that finds the solutions to our problem
 #----------------------------------------------------------------
 
-solutions = []
 nodes_visited = 0
 nodes_pruned = 0
 
@@ -207,8 +207,9 @@ def do_slot(i, ns):
     nodes_visited += 1 #Increase it by one every time we call the algorithm
     if i == ns: #If we succesfully reached the last slot
         if check_solution(proposed_solution): #Check the validity of the equation
-            solutions.append([numbers, nodes_visited, nodes_pruned, operator]) #Add it as a solution
-            find_moves(proposed_solution) #Get its moves
+            removals, additions, count = find_moves(proposed_solution) #Get its moves
+            solution = transform_solution(numbers, nodes_visited, nodes_pruned, operator, removals, additions, count)
+            solutions.get(count).append(solution)
             proposed_solution[i-1] = -1 #Change the proposed solution back to -1 (indicates empty spot)
         return
     for t_d in current_slot(i): #For each available digit for transformation
@@ -220,6 +221,18 @@ def do_slot(i, ns):
         else:
             nodes_pruned += 1 #Track the nodes we rejected
 
+def transform_solution(numbers, nodes_visited, nodes_pruned, operator, removals, additions, count):
+    return {
+        "equation" : str(numbers[0]) + " " + operator + " " + str(numbers[1]) + " = " + str(numbers[2]),
+        "picks" : removals,
+        "places" : additions,
+        "moves": [
+            "Move(" + removals[i] + "," + additions[i] + ")"
+            for i in range(count)],
+        "nodes_visited" : nodes_visited,
+        "nodes_pruned" : nodes_pruned
+    }
+    
 #-----------------------------------------------------------------------------------------------------------------
 #The functions to cut early impossible solutions and check the validity of solutions that make it to the last slot
 #-----------------------------------------------------------------------------------------------------------------
@@ -294,43 +307,35 @@ def update_total_additions_and_removals(new_a, new_r, add):
 #The functions to find the moves required for each solution and the total number of solutions for each number of moves
 #---------------------------------------------------------------------------------------------------------------------
 
-moves = []
-#Find the moves for each solution
+#Find the moves for a solution
 def find_moves(solution):
     global digits, transformation_table, moves, standard_digits
     additions, removals = [], []
     for i in range(len(solution)): #eg in 2 + 4 = 6, i = 1, 2, 3
         addition = list(transformation_table[digits[i]].get(solution[i])[1]) #In the first position it's what we added
         removal = list(transformation_table[digits[i]].get(solution[i])[2]) #In the second it's what we removed
+        len_a, len_r = len(addition), len(removal)
         letter = chr(ord('A')+i) #1=A, 2=B, 3=C, if there's 4, 4=D ...
-        for j in range(len(addition)): #We could've added more than 1 to get to this letter
+        for j in range(len_a): #We could've added more than 1 to get to this letter
             additions.append(letter + str(addition[j]))
-        for j in range(len(removal)): #We could've removed more than 1 to get to this letter
-            removals.append(letter + str(removal[j])) 
-    moves.append((removals, additions))
+        for j in range(len_r): #We could've removed more than 1 to get to this letter
+            removals.append(letter + str(removal[j]))
+        if len_r < len_a:
+            removals.append("G0")
+        elif len_a < len_r:
+            additions.append("G0")
+    return removals, additions, max(len_a, len_r)
 
 #Get the number of solutions for each number of moves
-def find_counts_and_sorted_solutions(moves):
-    counts=[0 for i in range(m_k+1)]
-    sorted_results=[[] for i in range(m_k+1)]
-    i=0
-    for move in moves:
-        len_r, len_a = len(move[0]), len(move[1])
-        if len_r < len_a:
-            move[0].append("G0") #We changed the operator by adding G0
-        elif len_r > len_a:
-            move[1].append("G0") #We changed the operator by removing G0
-        move_length = max(len_r, len_a)
-        counts[move_length]+=1
-        sorted_results[move_length].append([solutions[i], move]) #Keep the results (solutions & moves) in a list with m_k length
-        i+=1
-    return counts, sorted_results
+def find_counts(solutions):
+    counts = [len(solutions[i]) for i in range(m_k+1)]
+    return counts
 
 #-------------------------------------
 #Final output to the user in json form
 #-------------------------------------
 
-def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, sorted_results):
+def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions):
     final_results = {
         "problem" : problem,
         "max_k" : m_k,
@@ -339,21 +344,7 @@ def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, sorted_resu
         },
         "nodes_visited" : nodes_visited,
         "nodes_pruned" : nodes_pruned,
-        "solutions" : {
-            i : [ {
-                "equation" : str(sorted_results[i][j][0][0][0]) + " " 
-                + sorted_results[i][j][0][3] + " " + 
-                str(sorted_results[i][j][0][0][1]) + " = " 
-                + str(sorted_results[i][j][0][0][2]),
-                "picks" : sorted_results[i][j][1][0],
-                "places" : sorted_results[i][j][1][1],
-                "moves": [
-                    "Move(" + str(sorted_results[i][j][1][0][k]) + "," + str(sorted_results[i][j][1][1][k]) + ")"
-                    for k in range(i)],
-                "nodes_visited" : sorted_results[i][j][0][1],
-                "nodes_pruned" : sorted_results[i][j][0][2]
-                } for j in range(counts[i]) if i > 0] for i in range(1, m_k+1)
-        }
+        "solutions" : solutions
     }
     print_json_output(final_results)
 
