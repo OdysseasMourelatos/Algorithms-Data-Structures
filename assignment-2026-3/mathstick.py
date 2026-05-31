@@ -209,7 +209,8 @@ def do_slot(i, ns):
         if check_solution(proposed_solution): #Check the validity of the equation
             removals, additions, count = find_moves(proposed_solution) #Get its moves
             solution = transform_solution(numbers, nodes_visited, nodes_pruned, operator, removals, additions, count)
-            solutions.get(count).append(solution)
+            if count != 0:
+                solutions.get(count).append(solution)
             proposed_solution[i-1] = -1 #Change the proposed solution back to -1 (indicates empty spot)
         return
     for t_d in current_slot(i): #For each available digit for transformation
