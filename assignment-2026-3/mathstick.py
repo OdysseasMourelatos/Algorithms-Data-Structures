@@ -14,6 +14,7 @@ def main():
     #Seperate digits and numbers
     global digits, standard_digits, numbers_length
     digits, numbers_length = get_digits_and_numbers_length(numbers)
+    
     #Create standard digits & get the transformation table
     standard_digits = create_standard_digits_table()
     global transformation_table
@@ -48,8 +49,8 @@ def main():
     #Run again with the new operator
     do_slot(0, num_slots)
     
-    #Get the number of solution for each number of moves
-    counts = find_counts(moves)
+    #Get the number of solutions for each number of moves
+    counts = find_counts_and_sorted_solutions(moves)
     
     #Build and print results
     build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves)
@@ -102,6 +103,7 @@ def get_digits_and_numbers_length(numbers):
             digits.append(int(number[1]))
         numbers_length.append(length) #Keep the length of each number
     return digits, numbers_length
+
 #-----------------------------------------------------------------
 #Functions to get standard digits tablem, the transformation table
 #-----------------------------------------------------------------
@@ -150,9 +152,32 @@ def sort_by_cost(digits):
     for digit in digits:
         transformation_table[digit] = dict(sorted(transformation_table[digit].items(), key=lambda item: item[1][3][0] + item[1][3][1]))
 
-#-----------------------------------------------------------------
+#------------------------------------------------------------
+#Helper functions that help us cut impossible solutions early
+#------------------------------------------------------------
 
-#-----------------------------------------------------------------
+#The range of d = a - c for each digit, to use it in order to cut early impossible solutions
+def get_d_range(digits):
+    range_d_table = []
+    for digit in digits:
+        #For example, for digit 1: range_d = (0,2)
+        min_d, max_d = min(transformation_table[digit].items(), key=lambda x: x[1][4]), max(transformation_table[digit].items(), key=lambda x: x[1][4])
+        min_d, max_d = min_d[1][4], max_d[1][4] #d is located in the last position of the table
+        range_d = (min_d, max_d)
+        range_d_table.append(range_d)
+    return range_d_table     
+
+#Based on the d_range, find the suffix table
+def get_suffix_min_max_table():
+    suffix_min_max_table = []
+    for i in range(len(range_d_table) - 1): #For every slot besides the last one
+        suf_min, suf_max = 0,0 
+        for j in range(i+1, len(range_d_table)): #Find the suffix based on the slots located after slot i 
+            suf_min += range_d_table[j][0]
+            suf_max += range_d_table[j][1]
+        table_entry = (suf_min, suf_max)
+        suffix_min_max_table.append(table_entry)
+    return suffix_min_max_table
 
 o_a, o_r = 0, 0
 #Change the operator from + to - and from - to +
@@ -163,27 +188,9 @@ def change_operator():
     else:
         o_a, operator = 1, "+"
 
-#The range of d = a - c for each digit, to use it in order to cut early impossible solutions
-def get_d_range(digits):
-    range_d_table = []
-    for digit in digits:
-        min_d, max_d = min(transformation_table[digit].items(), key=lambda x: x[1][4]), max(transformation_table[digit].items(), key=lambda x: x[1][4])
-        min_d, max_d = min_d[1][4], max_d[1][4] #D is located in the last position of the table
-        range_d = (min_d, max_d)
-        range_d_table.append(range_d)
-    return range_d_table     
-
-#Based on the d_range, find the suffix table
-def get_suffix_min_max_table():
-    suffix_min_max_table = []
-    for i in range(len(range_d_table) - 1):
-        suf_min, suf_max = 0,0 
-        for j in range(i+1, len(range_d_table)): 
-            suf_min += range_d_table[j][0]
-            suf_max += range_d_table[j][1]
-        table_entry = (suf_min, suf_max)
-        suffix_min_max_table.append(table_entry)
-    return suffix_min_max_table
+#----------------------------------------------------------------
+#The recurssive algorithm that finds the solutions to our problem
+#----------------------------------------------------------------
 
 solutions = []
 nodes_visited = 0
@@ -208,20 +215,9 @@ def do_slot(i, ns):
         else:
             nodes_pruned += 1 #Track the nodes we rejected
 
-moves = []
-#Find the moves for each solution
-def find_moves(solution):
-    global digits, transformation_table, moves, standard_digits
-    additions, removals = [], []
-    for i in range(len(solution)): #eg in 2 + 4 = 6, i = 1, 2, 3
-        addition = list(transformation_table[digits[i]].get(solution[i])[1]) #In the first position it's what we added
-        removal = list(transformation_table[digits[i]].get(solution[i])[2]) #In the second it's what we removed
-        letter = chr(ord('A')+i) #1=A, 2=B, 3=C, if there's 4, 4=D ...
-        for j in range(len(addition)): #We could've added more than 1 to get to this letter
-            additions.append(letter + str(addition[j]))
-        for j in range(len(removal)): #We could've removed more than 1 to get to this letter
-            removals.append(letter + str(removal[j])) 
-    moves.append((removals, additions))
+#-----------------------------------------------------------------------------------------------------------------
+#The functions to cut early impossible solutions and check the validity of solutions that make it to the last slot
+#-----------------------------------------------------------------------------------------------------------------
 
 #Check the validity of the equation
 def check_solution(solution):
@@ -289,9 +285,30 @@ def update_total_additions_and_removals(new_a, new_r, add):
         t_a -= new_a
         t_r -= new_r
 
-#Get the number of solution for each number of moves
-def find_counts(moves):
+#---------------------------------------------------------------------------------------------------------------------
+#The functions to find the moves required for each solution and the total number of solutions for each number of moves
+#---------------------------------------------------------------------------------------------------------------------
+
+moves = []
+#Find the moves for each solution
+def find_moves(solution):
+    global digits, transformation_table, moves, standard_digits
+    additions, removals = [], []
+    for i in range(len(solution)): #eg in 2 + 4 = 6, i = 1, 2, 3
+        addition = list(transformation_table[digits[i]].get(solution[i])[1]) #In the first position it's what we added
+        removal = list(transformation_table[digits[i]].get(solution[i])[2]) #In the second it's what we removed
+        letter = chr(ord('A')+i) #1=A, 2=B, 3=C, if there's 4, 4=D ...
+        for j in range(len(addition)): #We could've added more than 1 to get to this letter
+            additions.append(letter + str(addition[j]))
+        for j in range(len(removal)): #We could've removed more than 1 to get to this letter
+            removals.append(letter + str(removal[j])) 
+    moves.append((removals, additions))
+
+#Get the number of solutions for each number of moves
+def find_counts_and_sorted_solutions(moves):
     counts=[0 for i in range(m_k+1)]
+    sorted_solutions=[[] for i in range(m_k+1)]
+    i=0
     for move in moves:
         len_r, len_a = len(move[0]), len(move[1])
         if len_r < len_a:
@@ -300,7 +317,14 @@ def find_counts(moves):
             move[1].append("G0") #We changed the operator by removing G0
         move_length = max(len_r, len_a)
         counts[move_length]+=1
+        sorted_solutions[move_length].append(solutions[i])
+        i+=1
+    print(sorted_solutions)
     return counts
+
+#-------------------------------------
+#Final output to the user in json form
+#-------------------------------------
 
 def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves):
     results = {
