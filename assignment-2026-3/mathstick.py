@@ -69,46 +69,6 @@ def main():
     #Build and print results
     build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves)
     
-def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves):
-    results = {
-        "problem" : problem,
-        "max_k" : m_k,
-        "counts" : {
-            i : counts[i] for i in range(1, m_k+1)
-        },
-        "nodes_visited" : nodes_visited,
-        "nodes_pruned" : nodes_pruned,
-        "solutions" : {
-            i : [ {
-                "equation" : str(solutions[j + counts[i-1]][0][0]) + " " 
-                + solutions[j + counts[i-1]][3] + " " + 
-                str(solutions[j + counts[i-1]][0][1]) + " = " 
-                + str(solutions[j + counts[i-1]][0][2]),
-                "picks" : moves[j + counts[i-1]][0],
-                "places" : moves[j + counts[i-1]][1],
-                "moves": [
-                    "Move(" + str(moves[j + counts[i-1]][0][k]) + "," + str(moves[j + counts[i-1]][1][k]) + ")"
-                    for k in range(len(moves[j + counts[i-1]][0]))],
-                "nodes_visited" : solutions[j + counts[i-1]][1],
-                "nodes_pruned" : solutions[j + counts[i-1]][2]
-                } for j in range(counts[i]) if i > 0] for i in range(1, m_k+1)
-        }
-    }
-    print_json_output(results)
-
-#Get the number of solution for each number of moves
-def find_counts(moves):
-    counts=[0 for i in range(m_k+1)]
-    for move in moves:
-        len_r, len_a = len(move[0]), len(move[1])
-        if len_r < len_a:
-            move[0].append("G0") #We changed the operator by adding G0
-        elif len_r > len_a:
-            move[1].append("G0") #We changed the operator by removing G0
-        move_length = max(len_r, len_a)
-        counts[move_length]+=1
-    return counts
-        
 #Parse the arguments  
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -132,6 +92,8 @@ def check_valid_problem(problem):
         for number in numbers:
             if not number.isdigit():
                 sys.exit("Invalid number: " + number)
+            if len(number) > 2:
+                sys.exit("Too many digits: " + number + " (" + str(len(number)) + "). Maximum is 2 for each number.")
     return numbers, operator
 
 #Standard digits table
@@ -312,6 +274,46 @@ def update_total_additions_and_removals(new_a, new_r, add):
     else:
         t_a -= new_a
         t_r -= new_r
+
+#Get the number of solution for each number of moves
+def find_counts(moves):
+    counts=[0 for i in range(m_k+1)]
+    for move in moves:
+        len_r, len_a = len(move[0]), len(move[1])
+        if len_r < len_a:
+            move[0].append("G0") #We changed the operator by adding G0
+        elif len_r > len_a:
+            move[1].append("G0") #We changed the operator by removing G0
+        move_length = max(len_r, len_a)
+        counts[move_length]+=1
+    return counts
+
+def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves):
+    results = {
+        "problem" : problem,
+        "max_k" : m_k,
+        "counts" : {
+            i : counts[i] for i in range(1, m_k+1)
+        },
+        "nodes_visited" : nodes_visited,
+        "nodes_pruned" : nodes_pruned,
+        "solutions" : {
+            i : [ {
+                "equation" : str(solutions[j + counts[i-1]][0][0]) + " " 
+                + solutions[j + counts[i-1]][3] + " " + 
+                str(solutions[j + counts[i-1]][0][1]) + " = " 
+                + str(solutions[j + counts[i-1]][0][2]),
+                "picks" : moves[j + counts[i-1]][0],
+                "places" : moves[j + counts[i-1]][1],
+                "moves": [
+                    "Move(" + str(moves[j + counts[i-1]][0][k]) + "," + str(moves[j + counts[i-1]][1][k]) + ")"
+                    for k in range(len(moves[j + counts[i-1]][0]))],
+                "nodes_visited" : solutions[j + counts[i-1]][1],
+                "nodes_pruned" : solutions[j + counts[i-1]][2]
+                } for j in range(counts[i]) if i > 0] for i in range(1, m_k+1)
+        }
+    }
+    print_json_output(results)
 
 #Print the output in json form
 def print_json_output(results):
