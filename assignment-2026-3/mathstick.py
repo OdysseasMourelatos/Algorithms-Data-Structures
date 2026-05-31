@@ -50,10 +50,10 @@ def main():
     do_slot(0, num_slots)
     
     #Get the number of solutions for each number of moves
-    counts = find_counts_and_sorted_solutions(moves)
+    counts, sorted_results = find_counts_and_sorted_solutions(moves)
     
     #Build and print results
-    build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves)
+    build_results(problem, m_k, counts, nodes_visited, nodes_pruned, sorted_results)
 
 #-------------------------------------------------------------------------
 #Functions to get the initial data and check the validity of the arguments
@@ -307,7 +307,7 @@ def find_moves(solution):
 #Get the number of solutions for each number of moves
 def find_counts_and_sorted_solutions(moves):
     counts=[0 for i in range(m_k+1)]
-    sorted_solutions=[[] for i in range(m_k+1)]
+    sorted_results=[[] for i in range(m_k+1)]
     i=0
     for move in moves:
         len_r, len_a = len(move[0]), len(move[1])
@@ -317,17 +317,16 @@ def find_counts_and_sorted_solutions(moves):
             move[1].append("G0") #We changed the operator by removing G0
         move_length = max(len_r, len_a)
         counts[move_length]+=1
-        sorted_solutions[move_length].append(solutions[i])
+        sorted_results[move_length].append([solutions[i], move]) #Keep the results (solutions & moves) in a list with m_k length
         i+=1
-    print(sorted_solutions)
-    return counts
+    return counts, sorted_results
 
 #-------------------------------------
 #Final output to the user in json form
 #-------------------------------------
 
-def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, moves):
-    results = {
+def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, sorted_results):
+    final_results = {
         "problem" : problem,
         "max_k" : m_k,
         "counts" : {
@@ -337,21 +336,21 @@ def build_results(problem, m_k, counts, nodes_visited, nodes_pruned, solutions, 
         "nodes_pruned" : nodes_pruned,
         "solutions" : {
             i : [ {
-                "equation" : str(solutions[j + counts[i-1]][0][0]) + " " 
-                + solutions[j + counts[i-1]][3] + " " + 
-                str(solutions[j + counts[i-1]][0][1]) + " = " 
-                + str(solutions[j + counts[i-1]][0][2]),
-                "picks" : moves[j + counts[i-1]][0],
-                "places" : moves[j + counts[i-1]][1],
+                "equation" : str(sorted_results[i][j][0][0][0]) + " " 
+                + sorted_results[i][j][0][3] + " " + 
+                str(sorted_results[i][j][0][0][1]) + " = " 
+                + str(sorted_results[i][j][0][0][2]),
+                "picks" : sorted_results[i][j][1][0],
+                "places" : sorted_results[i][j][1][1],
                 "moves": [
-                    "Move(" + str(moves[j + counts[i-1]][0][k]) + "," + str(moves[j + counts[i-1]][1][k]) + ")"
-                    for k in range(len(moves[j + counts[i-1]][0]))],
-                "nodes_visited" : solutions[j + counts[i-1]][1],
-                "nodes_pruned" : solutions[j + counts[i-1]][2]
+                    "Move(" + str(sorted_results[i][j][1][0][k]) + "," + str(sorted_results[i][j][1][1][k]) + ")"
+                    for k in range(i)],
+                "nodes_visited" : sorted_results[i][j][0][1],
+                "nodes_pruned" : sorted_results[i][j][0][2]
                 } for j in range(counts[i]) if i > 0] for i in range(1, m_k+1)
         }
     }
-    print_json_output(results)
+    print_json_output(final_results)
 
 #Print the output in json form
 def print_json_output(results):
