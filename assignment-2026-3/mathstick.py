@@ -6,16 +6,10 @@ def main():
     global m_k
     problem, m_k = args.problem, args.max_k
     
-    #Checking the validity of the problem and getting the numbers & the operator
+    #Checking the validity of the problem and getting the numbers, the operator & the number of slots
     global operator
     numbers, operator = check_valid_problem(problem)
-    
-    #Find number of slots and check if it is greater than 6
-    num_slots = 0
-    for number in numbers:
-        num_slots += len(number)
-    if num_slots > 6:
-        sys.exit("Too many digits: " + str(num_slots) + ". Maximum is 6.")
+    num_slots = find_num_slots(numbers)
     
     #Seperate digits and numbers
     global digits, standard_digits, numbers_length
@@ -95,6 +89,13 @@ def check_valid_problem(problem):
             if len(number) > 2:
                 sys.exit("Too many digits: " + number + " (" + str(len(number)) + "). Maximum is 2 for each number.")
     return numbers, operator
+
+#Find number of slots
+def find_num_slots(numbers):
+    num_slots = 0
+    for number in numbers:
+        num_slots += len(number)
+    return num_slots
 
 #Standard digits table
 def create_digits_table():
